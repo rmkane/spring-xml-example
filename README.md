@@ -1,7 +1,7 @@
 <!-- omit in toc -->
 # Spring XML Example
 
-A Spring Boot application demonstrating a layered architecture with XML request handling and JSON response formatting, using DTOs, entities, and MapStruct for type-safe mapping.
+A Spring Boot application demonstrating a layered architecture with XML request handling and JSON response formatting, using DTOs, entities, and MapStruct for type-safe mapping. Features nested data structures (info sections) and simplified entry objects with enum types.
 
 <!-- omit in toc -->
 ## Table of Contents
@@ -15,6 +15,8 @@ A Spring Boot application demonstrating a layered architecture with XML request 
   - [MetadataRequest](#metadatarequest)
   - [MetadataEntity](#metadataentity)
   - [MetadataResponse](#metadataresponse)
+  - [Entry Models](#entry-models)
+  - [Enums](#enums)
 - [Mapping Strategy](#mapping-strategy)
   - [Benefits of MapStruct](#benefits-of-mapstruct)
 - [API Endpoints](#api-endpoints)
@@ -99,6 +101,7 @@ This application follows a **layered architecture** pattern with clear separatio
 - **Format**: XML (consumes `application/xml`)
 - **Annotations**: `@JacksonXmlRootElement`, `@JacksonXmlProperty`
 - **Location**: Controller layer
+- **Structure**: Contains nested `InfoRequest` (with state, dates) and `List<EntryRequest>` (with name, count, type)
 
 ### MetadataEntity
 
@@ -106,6 +109,7 @@ This application follows a **layered architecture** pattern with clear separatio
 - **Format**: Plain Java object
 - **Location**: Repository layer
 - **Note**: This is what gets saved to the database/storage
+- **Structure**: Contains nested `InfoEntity` and `List<EntryEntity>`
 
 ### MetadataResponse
 
@@ -113,13 +117,30 @@ This application follows a **layered architecture** pattern with clear separatio
 - **Format**: JSON (produces `application/json`)
 - **Annotations**: `@JsonFormat` for date/time formatting
 - **Location**: Controller layer
+- **Structure**: Contains nested `InfoResponse` and `List<EntryResponse>`
+
+### Entry Models
+
+- **EntryRequest/EntryResponse/EntryEntity**: Simplified structure with:
+  - `name` (String): Entry name
+  - `count` (Integer): Entry count
+  - `type` (EntryType enum): Entry type (STANDARD, PREMIUM, BASIC)
+
+### Enums
+
+- **MetadataState**: UNKNOWN, ACTIVE, INACTIVE (maps to lowercase XML values)
+- **EntryType**: STANDARD, PREMIUM, BASIC (maps to lowercase XML values)
 
 ## Mapping Strategy
 
 The application uses **MapStruct** for compile-time, type-safe mapping between DTOs and entities:
 
 - **MetadataRequestMapper**: Converts between `MetadataRequest` ↔ `MetadataEntity`
+  - Maps nested `InfoRequest` ↔ `InfoEntity`
+  - Maps `List<EntryRequest>` ↔ `List<EntryEntity>`
 - **MetadataResponseMapper**: Converts between `MetadataEntity` ↔ `MetadataResponse`
+  - Maps nested `InfoEntity` ↔ `InfoResponse`
+  - Maps `List<EntryEntity>` ↔ `List<EntryResponse>`
 
 ### Benefits of MapStruct
 
@@ -127,6 +148,7 @@ The application uses **MapStruct** for compile-time, type-safe mapping between D
 - Type-safe mappings
 - Works seamlessly with Lombok
 - IDE support and debugging
+- Handles nested structures automatically
 
 ## API Endpoints
 
@@ -145,9 +167,24 @@ Accept: application/json
 <metadata id="012345678-9012-3456-7890-123456789012">
     <name>Example Metadata</name>
     <description>This is an example</description>
-    <created-date>01/15/2025</created-date>
-    <created-time>14:30:00</created-time>
-    <created-datetime>01/15/2025 14:30:00</created-datetime>
+    <info>
+        <state>active</state>
+        <created-date>01/15/2025</created-date>
+        <created-time>14:30:00</created-time>
+        <created-datetime>01/15/2025 14:30:00</created-datetime>
+    </info>
+    <entries>
+        <entry>
+            <name>Entry 1</name>
+            <count>10</count>
+            <type>standard</type>
+        </entry>
+        <entry>
+            <name>Entry 2</name>
+            <count>5</count>
+            <type>premium</type>
+        </entry>
+    </entries>
 </metadata>
 ```
 
@@ -161,9 +198,24 @@ Accept: application/json
   "id": "012345678-9012-3456-7890-123456789012",
   "name": "Example Metadata",
   "description": "This is an example",
-  "createdDate": "01/15/2025",
-  "createdTime": "14:30:00",
-  "createdDatetime": "01/15/2025 14:30:00"
+  "info": {
+    "state": "active",
+    "createdDate": "01/15/2025",
+    "createdTime": "14:30:00",
+    "createdDatetime": "01/15/2025 14:30:00"
+  },
+  "entries": [
+    {
+      "name": "Entry 1",
+      "count": 10,
+      "type": "standard"
+    },
+    {
+      "name": "Entry 2",
+      "count": 5,
+      "type": "premium"
+    }
+  ]
 }
 ```
 
@@ -200,9 +252,19 @@ Accept: application/json
   "id": "012345678-9012-3456-7890-123456789012",
   "name": "Example Metadata",
   "description": "This is an example",
-  "createdDate": "01/15/2025",
-  "createdTime": "14:30:00",
-  "createdDatetime": "01/15/2025 14:30:00"
+  "info": {
+    "state": "active",
+    "createdDate": "01/15/2025",
+    "createdTime": "14:30:00",
+    "createdDatetime": "01/15/2025 14:30:00"
+  },
+  "entries": [
+    {
+      "name": "Entry 1",
+      "count": 10,
+      "type": "standard"
+    }
+  ]
 }
 ```
 

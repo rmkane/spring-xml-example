@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.*;
 
 import org.mapstruct.*;
+import org.mapstruct.Mapping;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -70,10 +71,24 @@ class AppController {
                     <metadata id="012345678-9012-3456-7890-123456789012">
                         <name>Example Metadata</name>
                         <description>This is an example</description>
-                        <state>active</state>
-                        <created-date>01/15/2025</created-date>
-                        <created-time>14:30:00</created-time>
-                        <created-datetime>01/15/2025 14:30:00</created-datetime>
+                        <info>
+                            <state>active</state>
+                            <created-date>01/15/2025</created-date>
+                            <created-time>14:30:00</created-time>
+                            <created-datetime>01/15/2025 14:30:00</created-datetime>
+                        </info>
+                        <entries>
+                            <entry>
+                                <name>Entry 1</name>
+                                <count>10</count>
+                                <type>standard</type>
+                            </entry>
+                            <entry>
+                                <name>Entry 2</name>
+                                <count>5</count>
+                                <type>premium</type>
+                            </entry>
+                        </entries>
                     </metadata>
                     """
                 )
@@ -279,10 +294,17 @@ class MetadataServiceImpl implements MetadataService {
         if (metadata.getId() == null || metadata.getId().isEmpty()) {
             metadata.setId(generateId());
         }
-        if (metadata.getState() == null) {
-            metadata.setState(MetadataState.UNKNOWN);
+        // Set default state from info if not provided
+        if (metadata.getInfo() != null && metadata.getInfo().getState() == null) {
+            metadata.getInfo().setState(MetadataState.UNKNOWN);
+        } else if (metadata.getInfo() == null) {
+            InfoRequest info = InfoRequest.builder()
+                .state(MetadataState.UNKNOWN)
+                .build();
+            metadata.setInfo(info);
         }
-        return metadataResponseMapper.toResponse(metadataRepository.save(metadataRequestMapper.toEntity(metadata)));
+        MetadataEntity entity = metadataRequestMapper.toEntity(metadata);
+        return metadataResponseMapper.toResponse(metadataRepository.save(entity));
     }
 
     /**
@@ -452,6 +474,8 @@ interface MetadataRequestMapper {
      * @param entity the entity to map
      * @return the mapped request DTO
      */
+    @Mapping(target = "info", source = "info")
+    @Mapping(target = "entries", source = "entries")
     MetadataRequest toRequest(MetadataEntity entity);
 
     /**
@@ -460,7 +484,41 @@ interface MetadataRequestMapper {
      * @param request the request DTO to map
      * @return the mapped entity
      */
+    @Mapping(target = "info", source = "info")
+    @Mapping(target = "entries", source = "entries")
     MetadataEntity toEntity(MetadataRequest request);
+
+    /**
+     * Maps an InfoEntity to an InfoRequest.
+     *
+     * @param infoEntity the info entity to map
+     * @return the mapped info request
+     */
+    InfoRequest toInfoRequest(InfoEntity infoEntity);
+
+    /**
+     * Maps an InfoRequest to an InfoEntity.
+     *
+     * @param infoRequest the info request to map
+     * @return the mapped info entity
+     */
+    InfoEntity toInfoEntity(InfoRequest infoRequest);
+
+    /**
+     * Maps an EntryRequest to an EntryEntity.
+     *
+     * @param entryRequest the entry request to map
+     * @return the mapped entry entity
+     */
+    EntryEntity toEntryEntity(EntryRequest entryRequest);
+
+    /**
+     * Maps a list of EntryRequest to a list of EntryEntity.
+     *
+     * @param entryRequests the list of entry requests to map
+     * @return the list of mapped entry entities
+     */
+    List<EntryEntity> toEntryEntityList(List<EntryRequest> entryRequests);
 }
 
 @Mapper(componentModel = "spring")
@@ -471,6 +529,8 @@ interface MetadataResponseMapper {
      * @param entity the entity to map
      * @return the mapped response DTO
      */
+    @Mapping(target = "info", source = "info")
+    @Mapping(target = "entries", source = "entries")
     MetadataResponse toResponse(MetadataEntity entity);
 
     /**
@@ -479,7 +539,41 @@ interface MetadataResponseMapper {
      * @param response the response DTO to map
      * @return the mapped entity
      */
+    @Mapping(target = "info", source = "info")
+    @Mapping(target = "entries", source = "entries")
     MetadataEntity toEntity(MetadataResponse response);
+
+    /**
+     * Maps an InfoEntity to an InfoResponse.
+     *
+     * @param infoEntity the info entity to map
+     * @return the mapped info response
+     */
+    InfoResponse toInfoResponse(InfoEntity infoEntity);
+
+    /**
+     * Maps an InfoResponse to an InfoEntity.
+     *
+     * @param infoResponse the info response to map
+     * @return the mapped info entity
+     */
+    InfoEntity toInfoEntity(InfoResponse infoResponse);
+
+    /**
+     * Maps an EntryEntity to an EntryResponse.
+     *
+     * @param entryEntity the entry entity to map
+     * @return the mapped entry response
+     */
+    EntryResponse toEntryResponse(EntryEntity entryEntity);
+
+    /**
+     * Maps a list of EntryEntity to a list of EntryResponse.
+     *
+     * @param entryEntities the list of entry entities to map
+     * @return the list of mapped entry responses
+     */
+    List<EntryResponse> toEntryResponseList(List<EntryEntity> entryEntities);
 }
 
 /* -- Entity layer -- */
@@ -491,10 +585,27 @@ class MetadataEntity {
     private String id;
     private String name;
     private String description;
+    private InfoEntity info;
+    private List<EntryEntity> entries;
+}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+class InfoEntity {
     private MetadataState state;
     private LocalDate createdDate;
     private LocalTime createdTime;
     private LocalDateTime createdDatetime;
+}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+class EntryEntity {
+    private String name;
+    private Integer count;
+    private EntryType type;
 }
 
 /* -- DTO layer -- */
@@ -513,20 +624,11 @@ class MetadataResponse {
     @Schema(description = "Metadata description", example = "This is an example")
     private String description;
 
-    @Schema(description = "Metadata state", example = "active", allowableValues = {"unknown", "active", "inactive"})
-    private MetadataState state;
+    @Schema(description = "Metadata info section")
+    private InfoResponse info;
 
-    @Schema(description = "Created date", example = "01/15/2025", type = "string", format = "date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
-    private LocalDate createdDate;
-
-    @Schema(description = "Created time", example = "14:30:00", type = "string", format = "time")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
-    private LocalTime createdTime;
-
-    @Schema(description = "Created datetime", example = "01/15/2025 14:30:00", type = "string", format = "date-time")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy HH:mm:ss")
-    private LocalDateTime createdDatetime;
+    @Schema(description = "List of metadata entries")
+    private List<EntryResponse> entries;
 }
 
 @Data
@@ -548,6 +650,22 @@ class MetadataRequest {
     @Schema(description = "Metadata description", example = "This is an example")
     private String description;
 
+    @JacksonXmlProperty(localName = "info")
+    @Schema(description = "Metadata info section")
+    private InfoRequest info;
+
+    @JacksonXmlProperty(localName = "entries")
+    @JacksonXmlElementWrapper(localName = "entries")
+    @Schema(description = "List of metadata entries")
+    private List<EntryRequest> entries;
+}
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(name = "InfoRequest", description = "Metadata info request")
+class InfoRequest {
     @JacksonXmlProperty(localName = "state")
     @Schema(description = "Metadata state", example = "active", allowableValues = {"unknown", "active", "inactive"})
     private MetadataState state;
@@ -568,6 +686,62 @@ class MetadataRequest {
     private LocalDateTime createdDatetime;
 }
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JacksonXmlRootElement(localName = "entry")
+@Schema(name = "EntryRequest", description = "Metadata entry request")
+class EntryRequest {
+    @JacksonXmlProperty(localName = "name")
+    @Schema(description = "Entry name", example = "Entry 1")
+    private String name;
+
+    @JacksonXmlProperty(localName = "count")
+    @Schema(description = "Entry count", example = "10", type = "integer")
+    private Integer count;
+
+    @JacksonXmlProperty(localName = "type")
+    @Schema(description = "Entry type", example = "standard", allowableValues = {"standard", "premium", "basic"})
+    private EntryType type;
+}
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Schema(name = "InfoResponse", description = "Metadata info response")
+class InfoResponse {
+    @Schema(description = "Metadata state", example = "active", allowableValues = {"unknown", "active", "inactive"})
+    private MetadataState state;
+
+    @Schema(description = "Created date", example = "01/15/2025", type = "string", format = "date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
+    private LocalDate createdDate;
+
+    @Schema(description = "Created time", example = "14:30:00", type = "string", format = "time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+    private LocalTime createdTime;
+
+    @Schema(description = "Created datetime", example = "01/15/2025 14:30:00", type = "string", format = "date-time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy HH:mm:ss")
+    private LocalDateTime createdDatetime;
+}
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Schema(name = "EntryResponse", description = "Metadata entry response")
+class EntryResponse {
+    @Schema(description = "Entry name", example = "Entry 1")
+    private String name;
+
+    @Schema(description = "Entry count", example = "10", type = "integer")
+    private Integer count;
+
+    @Schema(description = "Entry type", example = "standard", allowableValues = {"standard", "premium", "basic"})
+    private EntryType type;
+}
+
 /* -- Enum layer -- */
 
 /**
@@ -586,6 +760,22 @@ enum MetadataState {
     
     @JsonProperty("inactive")
     INACTIVE
+}
+
+/**
+ * Entry type enumeration.
+ * Demonstrates Jackson XML enum mapping for entry types.
+ */
+@JsonFormat(shape = JsonFormat.Shape.STRING)
+enum EntryType {
+    @JsonProperty("standard")
+    STANDARD,
+    
+    @JsonProperty("premium")
+    PREMIUM,
+    
+    @JsonProperty("basic")
+    BASIC
 }
 
 /* -- Exception layer -- */

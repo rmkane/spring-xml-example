@@ -20,6 +20,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -64,7 +67,8 @@ class MetadataControllerIntegrationTest {
         assertEquals("012345678-9012-3456-7890-123456789012", body.getId());
         assertEquals("Spring XML Example", body.getName());
         assertEquals("This is a test description", body.getDescription());
-        assertEquals(MetadataState.ACTIVE, body.getState());
+        assertNotNull(body.getInfo());
+        assertEquals(MetadataState.ACTIVE, body.getInfo().getState());
         assertNotNull(response.getHeaders().getLocation());
         var location = response.getHeaders().getLocation();
         assertNotNull(location);
@@ -112,7 +116,8 @@ class MetadataControllerIntegrationTest {
         assertNotNull(body);
         assertEquals(testId, body.getId());
         assertEquals("Find By ID Test", body.getName());
-        assertEquals(MetadataState.ACTIVE, body.getState());
+        assertNotNull(body.getInfo());
+        assertEquals(MetadataState.ACTIVE, body.getInfo().getState());
     }
 
     @Test
@@ -166,14 +171,18 @@ class MetadataControllerIntegrationTest {
         createTestMetadata(testId, "First", MetadataState.ACTIVE);
 
         // When - try to create duplicate using the helper method
-        MetadataRequest metadata = MetadataRequest.builder()
-            .id(testId)
-            .name("Duplicate")
-            .description("This should fail")
+        InfoRequest info = InfoRequest.builder()
             .state(MetadataState.ACTIVE)
             .createdDate(CREATED_DATE)
             .createdTime(CREATED_TIME)
             .createdDatetime(CREATED_DATETIME)
+            .build();
+        MetadataRequest metadata = MetadataRequest.builder()
+            .id(testId)
+            .name("Duplicate")
+            .description("This should fail")
+            .info(info)
+            .entries(new ArrayList<>())
             .build();
         String xmlRequest = createTestMetadataXml(metadata);
         HttpEntity<String> request = new HttpEntity<>(xmlRequest, createXmlHeaders());
@@ -206,7 +215,8 @@ class MetadataControllerIntegrationTest {
             assertNotNull(createResponse.getBody());
             MetadataResponse body = createResponse.getBody();
             assertNotNull(body);
-            assertEquals(states[i], body.getState());
+            assertNotNull(body.getInfo());
+            assertEquals(states[i], body.getInfo().getState());
             
             // Also verify by fetching it
             ResponseEntity<MetadataResponse> getResponse = restTemplate.getForEntity(
@@ -217,7 +227,8 @@ class MetadataControllerIntegrationTest {
             assertNotNull(getResponse.getBody());
             MetadataResponse fetchedBody = getResponse.getBody();
             assertNotNull(fetchedBody);
-            assertEquals(states[i], fetchedBody.getState());
+            assertNotNull(fetchedBody.getInfo());
+            assertEquals(states[i], fetchedBody.getInfo().getState());
         }
     }
 
@@ -255,14 +266,19 @@ class MetadataControllerIntegrationTest {
      * @return the response entity
      */
     private ResponseEntity<MetadataResponse> createTestMetadataWithResponse(String id, String name, MetadataState state) {
-        MetadataRequest metadata = MetadataRequest.builder()
-            .id(id)
-            .name(name)
-            .description("Test description")
+        InfoRequest info = InfoRequest.builder()
             .state(state)
             .createdDate(CREATED_DATE)
             .createdTime(CREATED_TIME)
             .createdDatetime(CREATED_DATETIME)
+            .build();
+        
+        MetadataRequest metadata = MetadataRequest.builder()
+            .id(id)
+            .name(name)
+            .description("Test description")
+            .info(info)
+            .entries(new ArrayList<>())
             .build();
         String xmlRequest = createTestMetadataXml(metadata);
         HttpEntity<String> request = new HttpEntity<>(xmlRequest, createXmlHeaders());
@@ -271,31 +287,106 @@ class MetadataControllerIntegrationTest {
     }
 
     private String createTestMetadataXml(MetadataRequest request) {
-        String stateValue = request.getState() != null 
-            ? request.getState().name().toLowerCase() 
-            : "unknown";
         String description = request.getDescription() != null 
             ? request.getDescription() 
             : "Test description";
+        
+        String infoXml = createTestMetadataInfoXml(request.getInfo());
+        String entriesXml = createTestMetadataEntriesXml(request.getEntries());
         
         return """
             <?xml version="1.0" encoding="UTF-8"?>
             <metadata id="%s">
                 <name>%s</name>
                 <description>%s</description>
-                <state>%s</state>
-                <created-date>%s</created-date>
-                <created-time>%s</created-time>
-                <created-datetime>%s</created-datetime>
-            </metadata>
+                %s
+            %s</metadata>
             """.formatted(
             request.getId() != null ? request.getId() : "",
             request.getName() != null ? request.getName() : "",
             description,
+            infoXml,
+            entriesXml
+        );
+    }
+
+    /**
+     * Creates the info section XML for a metadata request.
+     *
+     * @param info the info request
+     * @return formatted multiline XML string for the info section
+     */
+    private String createTestMetadataInfoXml(InfoRequest info) {
+        String stateValue = "unknown";
+        String createdDateStr = "";
+        String createdTimeStr = "";
+        String createdDatetimeStr = "";
+        
+        if (info != null) {
+            stateValue = Optional.ofNullable(info.getState()).map(state -> state.name().toLowerCase()).orElse("unknown");
+            createdDateStr = Optional.ofNullable(info.getCreatedDate()).map(date -> date.format(DATE_CREATED_FORMATTER)).orElse("");
+            createdTimeStr = Optional.ofNullable(info.getCreatedTime()).map(time -> time.format(TIME_CREATED_FORMATTER)).orElse("");
+            createdDatetimeStr = Optional.ofNullable(info.getCreatedDatetime()).map(datetime -> datetime.format(DATETIME_CREATED_FORMATTER)).orElse("");
+        }
+        
+        return """
+                <info>
+                    <state>%s</state>
+                    <created-date>%s</created-date>
+                    <created-time>%s</created-time>
+                    <created-datetime>%s</created-datetime>
+                </info>
+            """.formatted(
             stateValue,
-            request.getCreatedDate() != null ? request.getCreatedDate().format(DATE_CREATED_FORMATTER) : "",
-            request.getCreatedTime() != null ? request.getCreatedTime().format(TIME_CREATED_FORMATTER) : "",
-            request.getCreatedDatetime() != null ? request.getCreatedDatetime().format(DATETIME_CREATED_FORMATTER) : ""
+            createdDateStr,
+            createdTimeStr,
+            createdDatetimeStr
+        );
+    }
+
+    /**
+     * Creates the entries section XML for a metadata request.
+     *
+     * @param entries the list of entry requests
+     * @return formatted multiline XML string for the entries section (empty string if no entries)
+     */
+    private String createTestMetadataEntriesXml(List<EntryRequest> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return "";
+        }
+        
+        StringBuilder entriesXml = new StringBuilder("        <entries>\n");
+        for (EntryRequest entry : entries) {
+            entriesXml.append(createTestMetadataEntryXml(entry));
+        }
+        entriesXml.append("        </entries>\n");
+        return entriesXml.toString();
+    }
+
+    /**
+     * Creates a single entry XML for a metadata request.
+     *
+     * @param entry the entry request
+     * @return formatted multiline XML string for a single entry
+     */
+    private String createTestMetadataEntryXml(EntryRequest entry) {
+        String typeValue = Optional.ofNullable(entry.getType())
+            .map(type -> type.name().toLowerCase())
+            .orElse("standard");
+        String countValue = Optional.ofNullable(entry.getCount())
+            .map(String::valueOf)
+            .orElse("0");
+        
+        return """
+                <entry>
+                    <name>%s</name>
+                    <count>%s</count>
+                    <type>%s</type>
+                </entry>
+            """.formatted(
+            entry.getName() != null ? entry.getName() : "",
+            countValue,
+            typeValue
         );
     }
 

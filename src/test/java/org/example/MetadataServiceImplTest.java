@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MetadataService Unit Tests")
 class MetadataServiceImplTest {
+    private static final LocalDate CREATED_DATE = LocalDate.of(2025, 1, 15);
+    private static final LocalTime CREATED_TIME = LocalTime.of(14, 30, 0);
+    private static final LocalDateTime CREATED_DATETIME = LocalDateTime.of(2025, 1, 15, 14, 30, 0);
 
     @Mock
     private MetadataRepository metadataRepository;
@@ -39,33 +43,47 @@ class MetadataServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        testRequest = new MetadataRequest();
-        testRequest.setId("test-id-123");
-        testRequest.setName("Test Metadata");
-        testRequest.setDescription("Test Description");
-        testRequest.setState(MetadataState.ACTIVE);
-        testRequest.setCreatedDate(LocalDate.of(2025, 1, 15));
-        testRequest.setCreatedTime(LocalTime.of(14, 30, 0));
-        testRequest.setCreatedDatetime(LocalDateTime.of(2025, 1, 15, 14, 30, 0));
+        InfoRequest infoRequest = InfoRequest.builder()
+            .state(MetadataState.ACTIVE)
+            .createdDate(CREATED_DATE)
+            .createdTime(CREATED_TIME)
+            .createdDatetime(CREATED_DATETIME)
+            .build();
+        
+        testRequest = MetadataRequest.builder()
+            .id("test-id-123")
+            .name("Test Metadata")
+            .description("Test Description")
+            .info(infoRequest)
+            .entries(new ArrayList<>())
+            .build();
 
+        InfoEntity infoEntity = new InfoEntity(
+            MetadataState.ACTIVE,
+            CREATED_DATE,
+            CREATED_TIME,
+            CREATED_DATETIME
+        );
         testEntity = new MetadataEntity(
             "test-id-123",
             "Test Metadata",
             "Test Description",
-            MetadataState.ACTIVE,
-            LocalDate.of(2025, 1, 15),
-            LocalTime.of(14, 30, 0),
-            LocalDateTime.of(2025, 1, 15, 14, 30, 0)
+            infoEntity,
+            new ArrayList<>()
         );
 
+        InfoResponse infoResponse = new InfoResponse(
+            MetadataState.ACTIVE,
+            CREATED_DATE,
+            CREATED_TIME,
+            CREATED_DATETIME
+        );
         testResponse = new MetadataResponse();
         testResponse.setId("test-id-123");
         testResponse.setName("Test Metadata");
         testResponse.setDescription("Test Description");
-        testResponse.setState(MetadataState.ACTIVE);
-        testResponse.setCreatedDate(LocalDate.of(2025, 1, 15));
-        testResponse.setCreatedTime(LocalTime.of(14, 30, 0));
-        testResponse.setCreatedDatetime(LocalDateTime.of(2025, 1, 15, 14, 30, 0));
+        testResponse.setInfo(infoResponse);
+        testResponse.setEntries(new ArrayList<>());
     }
 
     @Test
