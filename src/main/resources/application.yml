@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: spring-xml-example
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+logging:
+  level:
+    org.example: DEBUG
+    org.springframework: WARN
+    org.springdoc: ERROR
