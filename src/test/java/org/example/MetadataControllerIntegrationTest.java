@@ -2,6 +2,12 @@ package org.example;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.example.dto.request.EntryRequest;
+import org.example.dto.request.InfoRequest;
+import org.example.dto.request.MetadataRequest;
+import org.example.dto.response.MetadataResponse;
+import org.example.model.MetadataState;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
