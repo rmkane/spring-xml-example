@@ -46,10 +46,22 @@ public class CalendarRepositoryImpl implements CalendarRepository {
             count = EXCLUDED.count
         """;
 
-    private static final String INSERT_EVENT = """
+    private static final String UPSERT_EVENT = """
         INSERT INTO events (id, calendar_id, name, description, type, disabled, all_day, start_datetime, end_datetime, 
                            location, created_at, created_by, updated_at, updated_by)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (id) DO UPDATE SET
+            calendar_id = EXCLUDED.calendar_id,
+            name = EXCLUDED.name,
+            description = EXCLUDED.description,
+            type = EXCLUDED.type,
+            disabled = EXCLUDED.disabled,
+            all_day = EXCLUDED.all_day,
+            start_datetime = EXCLUDED.start_datetime,
+            end_datetime = EXCLUDED.end_datetime,
+            location = EXCLUDED.location,
+            updated_at = EXCLUDED.updated_at,
+            updated_by = EXCLUDED.updated_by
         """;
 
     private static final String SELECT_CALENDAR = """
@@ -112,7 +124,7 @@ public class CalendarRepositoryImpl implements CalendarRepository {
         int savedEvents = 0;
         if (entity.getEvents() != null && !entity.getEvents().isEmpty()) {
             for (CalendarEvent event : entity.getEvents()) {
-                jdbcTemplate.update(INSERT_EVENT,
+                jdbcTemplate.update(UPSERT_EVENT,
                     event.getId(),
                     entity.getId(),
                     event.getName(),
