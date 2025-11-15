@@ -53,6 +53,14 @@ public class CalendarManagerImpl implements CalendarManager {
      * {@inheritDoc}
      */
     @Override
+    public List<Calendar> findAllCalendars(int page, int size) {
+        return calendarRepository.findAll(page, size);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean calendarExists(String id) {
         return calendarRepository.existsById(id);
     }

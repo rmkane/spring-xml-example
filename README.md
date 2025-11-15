@@ -392,13 +392,38 @@ Accept: application/json
 ### Get All Calendars
 
 ```http
-GET /api/calendars
+GET /api/calendars?page=0&size=10
 Accept: application/json
 ```
 
+**Query Parameters:**
+
+- `page` (optional, default: 0): Page number (0-indexed)
+- `size` (optional, default: 10): Number of items per page (max: 100)
+
 **Response (JSON):**
 
-Returns a list of all calendars with their events.
+Returns a paginated response containing calendars with their events and pagination metadata.
+
+```json
+{
+  "items": [
+    {
+      "id": "20dbf44a-b88b-4742-a0b0-1d6c7dece68d",
+      "name": "Work Calendar",
+      "description": "Work schedule and meetings",
+      "metadata": { ... },
+      "events": [ ... ]
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 42,
+  "totalPages": 5,
+  "first": true,
+  "last": false
+}
+```
 
 ### Get Calendar by ID
 
@@ -574,9 +599,11 @@ This ensures annotation processors (MapStruct, Lombok) are properly executed and
 
 ## Future Enhancements
 
-- ~~Replace in-memory storage with a real database (JPA/Hibernate)~~ ✅ Done - Using JDBC with PostgreSQL
-- Add validation annotations to DTOs
-- Implement pagination for list endpoints
-- Add authentication/authorization
-- Implement caching layer
-- Add comprehensive unit and integration tests
+- [x] Replace in-memory storage with a real database (JPA/Hibernate)
+  - Using JDBC with PostgreSQL
+- [ ] Add validation annotations to DTOs
+- [x] Implement pagination for list endpoints
+  - Pagination support added to GET /api/calendars
+- [ ] Add authentication/authorization
+- [ ] Implement caching layer
+- [ ] Add comprehensive unit and integration tests

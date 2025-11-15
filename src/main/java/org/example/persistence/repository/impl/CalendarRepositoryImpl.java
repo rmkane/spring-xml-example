@@ -73,7 +73,14 @@ public class CalendarRepositoryImpl implements CalendarRepository {
     private static final String SELECT_ALL_CALENDARS = """
         SELECT id, name, description, status, visibility, created_at, created_by, updated_at, updated_by, count
         FROM calendars
-        ORDER BY created_timestamp DESC
+        ORDER BY created_at DESC
+        """;
+
+    private static final String SELECT_ALL_CALENDARS_PAGED = """
+        SELECT id, name, description, status, visibility, created_at, created_by, updated_at, updated_by, count
+        FROM calendars
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
         """;
 
     private static final String SELECT_EVENTS_BY_CALENDAR = """
@@ -203,6 +210,24 @@ public class CalendarRepositoryImpl implements CalendarRepository {
             calendar.setEvents(events);
         }
         log.debug("Loaded all calendars with events: totalCalendars={}", calendars.size());
+        return calendars;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Calendar> findAll(int page, int size) {
+        log.debug("Finding calendars in database: page={}, size={}", page, size);
+        int offset = page * size;
+        List<Calendar> calendars = jdbcTemplate.query(SELECT_ALL_CALENDARS_PAGED, new CalendarRowMapper(), size, offset);
+        log.debug("Found {} calendar(s) in database for page {}, loading events...", calendars.size(), page);
+        // Load events for each calendar
+        for (Calendar calendar : calendars) {
+            List<CalendarEvent> events = jdbcTemplate.query(SELECT_EVENTS_BY_CALENDAR, new EventRowMapper(), calendar.getId());
+            calendar.setEvents(events);
+        }
+        log.debug("Loaded calendars with events: page={}, size={}, count={}", page, size, calendars.size());
         return calendars;
     }
 

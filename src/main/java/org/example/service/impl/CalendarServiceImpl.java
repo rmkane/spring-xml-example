@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.example.dto.request.CalendarRequest;
 import org.example.dto.request.CalendarMetadataRequest;
 import org.example.dto.response.CalendarResponse;
+import org.example.dto.response.PagedResponse;
 import org.example.exception.CalendarAlreadyExistsException;
 import org.example.manager.CalendarManager;
 import org.example.persistence.entity.Calendar;
@@ -74,6 +75,45 @@ public class CalendarServiceImpl implements CalendarService {
         log.info("Found {} calendar(s)", results.size());
         log.debug("Calendar IDs: {}", results.stream().map(CalendarResponse::getId).toList());
         return results;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PagedResponse<CalendarResponse> findAll(int page, int size) {
+        log.info("Finding calendars: page={}, size={}", page, size);
+        
+        // Get total count
+        long totalElements = calendarManager.getCalendarCount();
+        
+        // Calculate total pages
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        
+        // Get paginated results
+        List<CalendarResponse> items = calendarManager.findAllCalendars(page, size)
+            .stream()
+            .map(calendarResponseMapper::toResponse)
+            .toList();
+        
+        boolean first = page == 0;
+        boolean last = page >= totalPages - 1 || items.isEmpty();
+        
+        PagedResponse<CalendarResponse> response = PagedResponse.<CalendarResponse>builder()
+            .items(items)
+            .page(page)
+            .size(size)
+            .totalElements(totalElements)
+            .totalPages(totalPages)
+            .first(first)
+            .last(last)
+            .build();
+        
+        log.info("Found {} calendar(s) on page {} of {} (total: {})", 
+            items.size(), page, totalPages, totalElements);
+        log.debug("Calendar IDs: {}", items.stream().map(CalendarResponse::getId).toList());
+        
+        return response;
     }
 
     /**

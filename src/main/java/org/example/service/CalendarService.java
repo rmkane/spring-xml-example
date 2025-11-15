@@ -33,6 +33,15 @@ public interface CalendarService {
     List<CalendarResponse> findAll();
 
     /**
+     * Retrieves a paginated list of calendar entries.
+     *
+     * @param page the page number (0-indexed)
+     * @param size the page size
+     * @return paginated response containing calendar responses and pagination metadata
+     */
+    org.example.dto.response.PagedResponse<CalendarResponse> findAll(int page, int size);
+
+    /**
      * Creates a new calendar entry. Generates an ID if not provided.
      *
      * @param calendar the calendar request

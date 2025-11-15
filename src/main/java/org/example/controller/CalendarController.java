@@ -1,9 +1,8 @@
 package org.example.controller;
 
-import java.util.List;
-
 import org.example.dto.request.CalendarRequest;
 import org.example.dto.response.CalendarResponse;
+import org.example.dto.response.PagedResponse;
 import org.example.exception.CalendarNotFoundException;
 import org.example.service.CalendarService;
 import org.springframework.http.*;
@@ -127,7 +126,7 @@ public class CalendarController {
     @GetMapping("")
     @Operation(
         summary = "Get all calendars",
-        description = "Retrieves a list of all calendar entries"
+        description = "Retrieves a paginated list of calendar entries. Use page and size query parameters for pagination."
     )
     @ApiResponses({
         @ApiResponse(
@@ -135,19 +134,41 @@ public class CalendarController {
             description = "Successfully retrieved list of calendars",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                array = @ArraySchema(schema = @Schema(implementation = CalendarResponse.class))
+                schema = @Schema(implementation = PagedResponse.class)
             )
         )
     })
     /**
-     * Retrieves all calendar entries.
+     * Retrieves calendar entries with pagination support.
      *
-     * @return ResponseEntity with status 200 (OK) and a list of all calendar responses
+     * @param page the page number (0-indexed, default: 0)
+     * @param size the page size (default: 10)
+     * @return ResponseEntity with status 200 (OK) and a paginated response containing calendar responses
      */
-    public ResponseEntity<List<CalendarResponse>> getCalendars() {
-        log.info("GET /api/calendars - Retrieving all calendars");
-        List<CalendarResponse> response = calendarService.findAll();
-        log.info("GET /api/calendars - Retrieved {} calendar(s), status=200", response.size());
+    public ResponseEntity<PagedResponse<CalendarResponse>> getCalendars(
+        @Parameter(description = "Page number (0-indexed)", example = "0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size", example = "10")
+        @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /api/calendars - Retrieving calendars: page={}, size={}", page, size);
+        
+        // Validate pagination parameters
+        if (page < 0) {
+            log.warn("Invalid page number: {}, defaulting to 0", page);
+            page = 0;
+        }
+        if (size < 1) {
+            log.warn("Invalid page size: {}, defaulting to 10", size);
+            size = 10;
+        }
+        if (size > 100) {
+            log.warn("Page size too large: {}, capping at 100", size);
+            size = 100;
+        }
+        
+        PagedResponse<CalendarResponse> response = calendarService.findAll(page, size);
+        log.info("GET /api/calendars - Retrieved {} calendar(s) on page {} of {}, status=200", 
+            response.getItems().size(), page, response.getTotalPages());
         return ResponseEntity.ok(response);
     }
 

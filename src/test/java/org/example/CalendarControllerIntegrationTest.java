@@ -6,6 +6,7 @@ import org.example.dto.request.CalendarRequest;
 import org.example.dto.request.EventRequest;
 import org.example.dto.request.CalendarMetadataRequest;
 import org.example.dto.response.CalendarResponse;
+import org.example.dto.response.PagedResponse;
 import org.example.model.CalendarVisibility;
 import org.example.model.CalendarState;
 
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.*;
@@ -175,17 +177,23 @@ class CalendarControllerIntegrationTest {
         createTestCalendar("test-all-2", "Test 2", CalendarState.INACTIVE);
 
         // When
-        ResponseEntity<CalendarResponse[]> response = restTemplate.getForEntity(
+        ResponseEntity<PagedResponse<CalendarResponse>> response = restTemplate.exchange(
             BASE_URL,
-            CalendarResponse[].class
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<PagedResponse<CalendarResponse>>() {}
         );
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        CalendarResponse[] body = response.getBody();
+        PagedResponse<CalendarResponse> body = response.getBody();
         assertNotNull(body);
-        assertTrue(body.length >= 2);
+        assertNotNull(body.getItems());
+        assertTrue(body.getItems().size() >= 2);
+        assertTrue(body.getTotalElements() >= 2);
+        assertEquals(0, body.getPage());
+        assertEquals(10, body.getSize());
     }
 
     @Test

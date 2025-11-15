@@ -40,6 +40,15 @@ public interface CalendarManager {
     List<Calendar> findAllCalendars();
 
     /**
+     * Retrieves a paginated list of calendar entities.
+     *
+     * @param page the page number (0-indexed)
+     * @param size the page size
+     * @return list of calendar entities for the requested page
+     */
+    List<Calendar> findAllCalendars(int page, int size);
+
+    /**
      * Checks if a calendar entity exists by its ID.
      *
      * @param id the calendar ID
