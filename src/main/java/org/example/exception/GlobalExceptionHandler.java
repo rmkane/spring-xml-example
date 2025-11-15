@@ -14,26 +14,26 @@ import lombok.extern.slf4j.Slf4j;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     /**
-     * Handles MetadataNotFoundException and returns a ProblemDetail response.
+     * Handles CalendarNotFoundException and returns a ProblemDetail response.
      *
      * @param e the exception that was thrown
      * @return ProblemDetail with status 404 (NOT_FOUND) and the exception message
      */
-    @ExceptionHandler(MetadataNotFoundException.class)
-    public ProblemDetail handleMetadataNotFoundException(MetadataNotFoundException e) {
-        log.warn("Metadata not found: {}", e.getMessage());
+    @ExceptionHandler(CalendarNotFoundException.class)
+    public ProblemDetail handleCalendarNotFoundException(CalendarNotFoundException e) {
+        log.warn("Calendar not found: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     /**
-     * Handles MetadataAlreadyExistsException and returns a ProblemDetail response.
+     * Handles CalendarAlreadyExistsException and returns a ProblemDetail response.
      *
      * @param e the exception that was thrown
      * @return ProblemDetail with status 400 (BAD_REQUEST) and the exception message
      */
-    @ExceptionHandler(MetadataAlreadyExistsException.class)
-    public ProblemDetail handleMetadataAlreadyExistsException(MetadataAlreadyExistsException e) {
-        log.warn("Metadata already exists: {}", e.getMessage());
+    @ExceptionHandler(CalendarAlreadyExistsException.class)
+    public ProblemDetail handleCalendarAlreadyExistsException(CalendarAlreadyExistsException e) {
+        log.warn("Calendar already exists: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 }

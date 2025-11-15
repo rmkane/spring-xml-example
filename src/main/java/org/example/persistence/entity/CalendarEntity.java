@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetadataEntity {
+public class CalendarEntity {
     private String id;
     private String name;
     private String description;
-    private InfoEntity info;
-    private List<EntryEntity> entries;
+    private InfoEntity metadata;
+    private List<EventEntity> events;
 }
 

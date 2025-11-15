@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<calendar id="20dbf44a-b88b-4742-a0b0-1d6c7dece68d">
+    <name>Work Calendar</name>
+    <description>Work schedule and meetings</description>
+    <metadata>
+        <status>active</status>
+        <visibility>shared</visibility>
+        <created-at>11/13/2025 12:00:00</created-at>
+        <created-by>John Doe</created-by>
+        <updated-at>11/13/2025 14:30:00</updated-at>
+        <updated-by>Jane Doe</updated-by>
+        <count>5</count>
+    </metadata>
+    <event id="a1b2c3d4-e5f6-7890-abcd-111111111111">
+        <name>Team Standup</name>
+        <description>Daily team standup meeting</description>
+        <type>meeting</type>
+        <disabled>false</disabled>
+        <all-day>false</all-day>
+        <start-datetime>11/14/2025 09:00:00</start-datetime>
+        <end-datetime>11/14/2025 09:30:00</end-datetime>
+        <location>Zoom</location>
+        <created-at>11/10/2025 10:00:00</created-at>
+        <created-by>John Doe</created-by>
+        <updated-at>11/13/2025 14:30:00</updated-at>
+        <updated-by>Jane Doe</updated-by>
+    </event>
+    <event id="a1b2c3d4-e5f6-7890-abcd-222222222222">
+        <name>Thanksgiving</name>
+        <description>Thanksgiving holiday</description>
+        <type>holiday</type>
+        <disabled>false</disabled>
+        <all-day>true</all-day>
+        <start-datetime>11/27/2025 00:00:00</start-datetime>
+        <end-datetime>11/27/2025 23:59:59</end-datetime>
+        <created-at>11/01/2025 08:00:00</created-at>
+        <created-by>John Doe</created-by>
+        <updated-at>11/13/2025 14:30:00</updated-at>
+        <updated-by>John Doe</updated-by>
+    </event>
+    <event id="a1b2c3d4-e5f6-7890-abcd-333333333333">
+        <name>Doctor Appointment</name>
+        <description>Annual checkup</description>
+        <type>appointment</type>
+        <disabled>false</disabled>
+        <all-day>false</all-day>
+        <start-datetime>12/05/2025 14:00:00</start-datetime>
+        <end-datetime>12/05/2025 15:00:00</end-datetime>
+        <location>Medical Center</location>
+        <created-at>11/15/2025 09:00:00</created-at>
+        <created-by>John Doe</created-by>
+        <updated-at>11/15/2025 09:00:00</updated-at>
+        <updated-by>John Doe</updated-by>
+    </event>
+    <event id="a1b2c3d4-e5f6-7890-abcd-444444444444">
+        <name>Project Deadline Reminder</name>
+        <description>Submit final report</description>
+        <type>reminder</type>
+        <disabled>false</disabled>
+        <all-day>false</all-day>
+        <start-datetime>12/15/2025 17:00:00</start-datetime>
+        <end-datetime>12/15/2025 17:00:00</end-datetime>
+        <created-at>11/20/2025 11:00:00</created-at>
+        <created-by>Jane Doe</created-by>
+        <updated-at>11/20/2025 11:00:00</updated-at>
+        <updated-by>Jane Doe</updated-by>
+    </event>
+    <event id="a1b2c3d4-e5f6-7890-abcd-555555555555">
+        <name>Holiday Break</name>
+        <description>Year-end holidays</description>
+        <type>holiday</type>
+        <disabled>false</disabled>
+        <all-day>true</all-day>
+        <start-datetime>12/25/2025 00:00:00</start-datetime>
+        <end-datetime>01/01/2026 23:59:59</end-datetime>
+        <created-at>11/01/2025 08:00:00</created-at>
+        <created-by>John Doe</created-by>
+        <updated-at>11/13/2025 14:30:00</updated-at>
+        <updated-by>John Doe</updated-by>
+    </event>
+</calendar>

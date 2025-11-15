@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<calendar id="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+    <name>Personal Calendar</name>
+    <description>Personal events and reminders</description>
+    <metadata>
+        <status>active</status>
+        <visibility>personal</visibility>
+        <created-at>10/01/2025 08:00:00</created-at>
+        <created-by>Jane Doe</created-by>
+        <updated-at>11/14/2025 16:45:00</updated-at>
+        <updated-by>Jane Doe</updated-by>
+        <count>4</count>
+    </metadata>
+    <event id="b1b2c3d4-e5f6-7890-abcd-111111111111">
+        <name>Birthday Party</name>
+        <description>Friend's birthday celebration</description>
+        <type>other</type>
+        <disabled>false</disabled>
+        <all-day>false</all-day>
+        <start-datetime>11/20/2025 18:00:00</start-datetime>
+        <end-datetime>11/20/2025 22:00:00</end-datetime>
+        <location>Restaurant Downtown</location>
+        <created-at>10/15/2025 10:00:00</created-at>
+        <created-by>Jane Doe</created-by>
+        <updated-at>11/10/2025 14:20:00</updated-at>
+        <updated-by>Jane Doe</updated-by>
+    </event>
+    <event id="b1b2c3d4-e5f6-7890-abcd-222222222222">
+        <name>Gym Session</name>
+        <description>Weekly workout routine</description>
+        <type>appointment</type>
+        <disabled>false</disabled>
+        <all-day>false</all-day>
+        <start-datetime>11/18/2025 07:00:00</start-datetime>
+        <end-datetime>11/18/2025 08:30:00</end-datetime>
+        <location>Fitness Center</location>
+        <created-at>10/05/2025 09:00:00</created-at>
+        <created-by>Jane Doe</created-by>
+        <updated-at>11/14/2025 16:45:00</updated-at>
+        <updated-by>Jane Doe</updated-by>
+    </event>
+    <event id="b1b2c3d4-e5f6-7890-abcd-333333333333">
+        <name>Grocery Shopping Reminder</name>
+        <description>Weekly grocery shopping</description>
+        <type>reminder</type>
+        <disabled>false</disabled>
+        <all-day>false</all-day>
+        <start-datetime>11/19/2025 10:00:00</start-datetime>
+        <end-datetime>11/19/2025 10:00:00</end-datetime>
+        <created-at>11/14/2025 16:00:00</created-at>
+        <created-by>Jane Doe</created-by>
+    </event>
+    <event id="b1b2c3d4-e5f6-7890-abcd-444444444444">
+        <name>New Year's Day</name>
+        <description>New Year celebration</description>
+        <type>holiday</type>
+        <disabled>false</disabled>
+        <all-day>true</all-day>
+        <start-datetime>01/01/2026 00:00:00</start-datetime>
+        <end-datetime>01/01/2026 23:59:59</end-datetime>
+        <created-at>10/01/2025 08:00:00</created-at>
+        <created-by>Jane Doe</created-by>
+    </event>
+</calendar>
+

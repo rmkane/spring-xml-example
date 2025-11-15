@@ -17,28 +17,28 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JacksonXmlRootElement(localName = "metadata")
-@Schema(name = "MetadataRequest", description = "Metadata request")
-public class MetadataRequest {
+@JacksonXmlRootElement(localName = "calendar")
+@Schema(name = "CalendarRequest", description = "Calendar request")
+public class CalendarRequest {
     @JacksonXmlProperty(isAttribute = true, localName = "id")
-    @Schema(description = "Metadata ID", example = "1", accessMode = AccessMode.READ_WRITE)
+    @Schema(description = "Calendar ID", example = "20dbf44a-b88b-4742-a0b0-1d6c7dece68d", accessMode = AccessMode.READ_WRITE)
     private String id;
 
     @JacksonXmlProperty(localName = "name")
-    @Schema(description = "Metadata name", example = "Example Metadata")
+    @Schema(description = "Calendar name", example = "Work Calendar")
     private String name;
 
     @JacksonXmlProperty(localName = "description")
-    @Schema(description = "Metadata description", example = "This is an example")
+    @Schema(description = "Calendar description", example = "Work schedule and meetings")
     private String description;
 
-    @JacksonXmlProperty(localName = "info")
-    @Schema(description = "Metadata info section")
-    private InfoRequest info;
+    @JacksonXmlProperty(localName = "metadata")
+    @Schema(description = "Calendar metadata section")
+    private InfoRequest metadata;
 
-    @JacksonXmlProperty(localName = "entries")
-    @JacksonXmlElementWrapper(localName = "entries")
-    @Schema(description = "List of metadata entries")
-    private List<EntryRequest> entries;
+    @JacksonXmlProperty(localName = "event")
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @Schema(description = "List of calendar events")
+    private List<EventRequest> events;
 }
 

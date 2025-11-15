@@ -1,10 +1,7 @@
 package org.example.dto.request;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
-import org.example.model.MetadataState;
+import org.example.model.CalendarState;
+import org.example.model.CalendarVisibility;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -19,25 +16,35 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(name = "InfoRequest", description = "Metadata info request")
+@Schema(name = "InfoRequest", description = "Calendar metadata request")
 public class InfoRequest {
-    @JacksonXmlProperty(localName = "state")
-    @Schema(description = "Metadata state", example = "active", allowableValues = {"unknown", "active", "inactive"})
-    private MetadataState state;
+    @JacksonXmlProperty(localName = "status")
+    @Schema(description = "Calendar status", example = "active", allowableValues = {"unknown", "active", "inactive"})
+    private CalendarState status;
 
-    @JacksonXmlProperty(localName = "created-date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
-    @Schema(description = "Created date", example = "01/15/2025", type = "string", format = "date")
-    private LocalDate createdDate;
+    @JacksonXmlProperty(localName = "visibility")
+    @Schema(description = "Calendar visibility/sharing setting", example = "shared", allowableValues = {"personal", "shared", "private"})
+    private CalendarVisibility visibility;
 
-    @JacksonXmlProperty(localName = "created-time")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
-    @Schema(description = "Created time", example = "14:30:00", type = "string", format = "time")
-    private LocalTime createdTime;
-
-    @JacksonXmlProperty(localName = "created-datetime")
+    @JacksonXmlProperty(localName = "created-at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy HH:mm:ss")
-    @Schema(description = "Created datetime", example = "01/15/2025 14:30:00", type = "string", format = "date-time")
-    private LocalDateTime createdDatetime;
-}
+    @Schema(description = "Created at timestamp", example = "11/13/2025 12:00:00", type = "string", format = "date-time")
+    private String createdAt;
 
+    @JacksonXmlProperty(localName = "created-by")
+    @Schema(description = "Created by user", example = "John Doe")
+    private String createdBy;
+
+    @JacksonXmlProperty(localName = "updated-at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy HH:mm:ss")
+    @Schema(description = "Updated at timestamp", example = "11/13/2025 14:30:00", type = "string", format = "date-time")
+    private String updatedAt;
+
+    @JacksonXmlProperty(localName = "updated-by")
+    @Schema(description = "Updated by user", example = "Jane Doe")
+    private String updatedBy;
+
+    @JacksonXmlProperty(localName = "count")
+    @Schema(description = "Event count", example = "2", type = "integer")
+    private Integer count;
+}

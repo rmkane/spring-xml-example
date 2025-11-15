@@ -1,10 +1,7 @@
 package org.example.persistence.entity;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
-import org.example.model.MetadataState;
+import org.example.model.CalendarState;
+import org.example.model.CalendarVisibility;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,9 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InfoEntity {
-    private MetadataState state;
-    private LocalDate createdDate;
-    private LocalTime createdTime;
-    private LocalDateTime createdDatetime;
+    private CalendarState status;
+    private CalendarVisibility visibility;
+    private String createdAt;
+    private String createdBy;
+    private String updatedAt;
+    private String updatedBy;
+    private Integer count;
 }
-

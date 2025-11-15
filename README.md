@@ -101,7 +101,7 @@ This application follows a **layered architecture** pattern with clear separatio
 - **Format**: XML (consumes `application/xml`)
 - **Annotations**: `@JacksonXmlRootElement`, `@JacksonXmlProperty`
 - **Location**: Controller layer
-- **Structure**: Contains nested `InfoRequest` (with state, dates) and `List<EntryRequest>` (with name, count, type)
+- **Structure**: Contains nested `InfoRequest` (with status, dates) and `List<EntryRequest>` (with name, count, type)
 
 ### MetadataEntity
 
@@ -128,7 +128,7 @@ This application follows a **layered architecture** pattern with clear separatio
 
 ### Enums
 
-- **MetadataState**: UNKNOWN, ACTIVE, INACTIVE (maps to lowercase XML values)
+- **CalendarState**: UNKNOWN, ACTIVE, INACTIVE (maps to lowercase XML values)
 - **EntryType**: STANDARD, PREMIUM, BASIC (maps to lowercase XML values)
 
 ## Mapping Strategy
@@ -164,27 +164,25 @@ Accept: application/json
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<metadata id="012345678-9012-3456-7890-123456789012">
+<metadata id="20dbf44a-b88b-4742-a0b0-1d6c7dece68d">
     <name>Example Metadata</name>
     <description>This is an example</description>
     <info>
-        <state>active</state>
+        <status>active</status>
         <created-date>01/15/2025</created-date>
         <created-time>14:30:00</created-time>
         <created-datetime>01/15/2025 14:30:00</created-datetime>
     </info>
-    <entries>
-        <entry>
-            <name>Entry 1</name>
-            <count>10</count>
-            <type>standard</type>
-        </entry>
-        <entry>
-            <name>Entry 2</name>
-            <count>5</count>
-            <type>premium</type>
-        </entry>
-    </entries>
+    <entry>
+        <name>Entry 1</name>
+        <count>10</count>
+        <type>standard</type>
+    </entry>
+    <entry>
+        <name>Entry 2</name>
+        <count>5</count>
+        <type>premium</type>
+    </entry>
 </metadata>
 ```
 
@@ -195,11 +193,11 @@ Accept: application/json
 
 ```json
 {
-  "id": "012345678-9012-3456-7890-123456789012",
+  "id": "20dbf44a-b88b-4742-a0b0-1d6c7dece68d",
   "name": "Example Metadata",
   "description": "This is an example",
   "info": {
-    "state": "active",
+    "status": "active",
     "createdDate": "01/15/2025",
     "createdTime": "14:30:00",
     "createdDatetime": "01/15/2025 14:30:00"
@@ -249,11 +247,11 @@ Accept: application/json
 
 ```json
 {
-  "id": "012345678-9012-3456-7890-123456789012",
+  "id": "20dbf44a-b88b-4742-a0b0-1d6c7dece68d",
   "name": "Example Metadata",
   "description": "This is an example",
   "info": {
-    "state": "active",
+    "status": "active",
     "createdDate": "01/15/2025",
     "createdTime": "14:30:00",
     "createdDatetime": "01/15/2025 14:30:00"
