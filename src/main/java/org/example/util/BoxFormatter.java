@@ -1,6 +1,8 @@
 package org.example.util;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -10,6 +12,7 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BoxFormatter {
+
 
     /**
      * Prints text lines inside a bordered box with a header, body, and optional footer section.
@@ -85,6 +88,30 @@ public class BoxFormatter {
      */
     public static void printBoxed(String header, List<String> bodyLines) {
         printBoxed(header, bodyLines, null);
+    }
+
+    /**
+     * Converts a map to a list of formatted string lines.
+     * Uses the default format: "key: value"
+     *
+     * @param map the map to convert
+     * @return list of formatted string lines
+     */
+    public static <K, V> List<String> mapToLines(Map<K, V> map) {
+        return mapToLines(map, (entry) -> String.format("%s: %s", entry.getKey(), entry.getValue()));
+    }
+
+    /**
+     * Converts a map to a list of formatted string lines using a custom formatter.
+     *
+     * @param map the map to convert
+     * @param formatter the function to format each map entry
+     * @return list of formatted string lines
+     */
+    public static <K, V> List<String> mapToLines(Map<K, V> map, MapEntryFormatter<K, V, String> formatter) {
+        return map.entrySet().stream()
+            .map(formatter)
+            .collect(Collectors.toList());
     }
 }
 

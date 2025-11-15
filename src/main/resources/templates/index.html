@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring XML Example - Application Status</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container" style="max-width: 800px; margin-top: 2rem; margin-bottom: 2rem;">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold mb-2">Spring XML Example</h1>
+            <p class="text-gray-600">Application Status & Endpoints</p>
+        </div>
+
+        <!-- Health Status Card -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h2 class="text-xl font-semibold">Health Status</h2>
+            </div>
+            <div class="card-body">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-2xl font-bold" th:text="${healthStatus}">✓ READY</span>
+                    <span class="badge" 
+                          th:classappend="${isHealthy} ? 'badge-success' : 'badge-warning'"
+                          th:text="${isHealthy} ? 'Healthy' : 'Issues Detected'">
+                        Healthy
+                    </span>
+                </div>
+                
+                <div th:if="${healthComponents != null and !healthComponents.isEmpty()}" class="mt-4">
+                    <h3 class="font-semibold mb-2 text-gray-700">Components</h3>
+                    <ul class="list-none">
+                        <li th:each="component : ${healthComponents}" class="list-item">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold" th:text="${#strings.capitalize(component.key)}">Component</span>
+                                <span class="badge" 
+                                      th:classappend="${#strings.contains(component.value, 'UP')} ? 'badge-success' : 'badge-warning'"
+                                      th:text="${component.value}">
+                                    Status
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Endpoints Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-xl font-semibold">Available Endpoints</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-none">
+                    <li th:each="endpoint : ${endpoints}" class="list-item">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700" th:text="${endpoint.key}">Endpoint Name</span>
+                            <a th:href="${endpoint.value}" 
+                               th:text="${endpoint.value}"
+                               class="link"
+                               target="_blank">
+                                URL
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

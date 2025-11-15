@@ -1,7 +1,7 @@
 package org.example.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.example.service.EndpointInfoService;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -99,13 +99,13 @@ public class EndpointInfoServiceImpl implements EndpointInfoService {
     }
 
     @Override
-    public List<String> getEndpointInfo(String baseUrl) {
-        List<String> endpointInfo = new ArrayList<>();
-        endpointInfo.add(String.format("Server running on: %s", baseUrl));
-        endpointInfo.add(String.format("Swagger UI available at: %s%s", baseUrl, SWAGGER_UI_PATH));
-        endpointInfo.add(String.format("API Docs available at: %s%s", baseUrl, API_DOCS_PATH));
-        endpointInfo.add(String.format("Health check available at: %s%s", baseUrl, HEALTH_ENDPOINT_PATH));
-        return endpointInfo;
+    public Map<String, String> getEndpointInfo(String baseUrl) {
+        Map<String, String> endpoints = new LinkedHashMap<>();
+        endpoints.put("Server", baseUrl);
+        endpoints.put("Swagger UI", baseUrl + SWAGGER_UI_PATH);
+        endpoints.put("API Docs", baseUrl + API_DOCS_PATH);
+        endpoints.put("Health check", baseUrl + HEALTH_ENDPOINT_PATH);
+        return endpoints;
     }
 }
 

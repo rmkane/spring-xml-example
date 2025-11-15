@@ -1,6 +1,6 @@
 package org.example.service;
 
-import java.util.List;
+import java.util.Map;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 
@@ -21,8 +21,8 @@ public interface EndpointInfoService {
      * Gets endpoint information (connection/endpoint URLs).
      *
      * @param baseUrl the base URL of the application
-     * @return list of endpoint information lines
+     * @return map of endpoint labels to their URLs
      */
-    List<String> getEndpointInfo(String baseUrl);
+    Map<String, String> getEndpointInfo(String baseUrl);
 }
 

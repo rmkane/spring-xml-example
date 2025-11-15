@@ -35,8 +35,7 @@ public class ApplicationStartupListener {
         healthCheckService.waitForStableHealthAsync()
             .thenAccept(healthComponent -> {
                 List<String> startupInfo = startupInfoService.getStartupInfo(baseUrl, healthComponent);
-                List<String> endpointInfo = endpointInfoService.getEndpointInfo(baseUrl);
-                
+                List<String> endpointInfo = BoxFormatter.mapToLines(endpointInfoService.getEndpointInfo(baseUrl));
                 BoxFormatter.printBoxed("Application Started", startupInfo, endpointInfo);
                 logHealthWarningIfNeeded(healthComponent);
             })
