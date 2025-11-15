@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.example.dto.request.CalendarRequest;
 import org.example.dto.request.EventRequest;
-import org.example.dto.request.InfoRequest;
+import org.example.dto.request.CalendarMetadataRequest;
 import org.example.dto.response.CalendarResponse;
 import org.example.model.CalendarVisibility;
 import org.example.model.CalendarState;
@@ -175,7 +175,7 @@ class CalendarControllerIntegrationTest {
         createTestCalendar(testId, "First", CalendarState.ACTIVE);
 
         // When - try to create duplicate using the helper method
-        InfoRequest metadataInfo = InfoRequest.builder()
+        CalendarMetadataRequest metadataRequest = CalendarMetadataRequest.builder()
             .status(CalendarState.ACTIVE)
             .createdAt(CREATED_AT)
             .createdBy(CREATED_BY)
@@ -185,7 +185,7 @@ class CalendarControllerIntegrationTest {
             .id(testId)
             .name("Duplicate")
             .description("This should fail")
-            .metadata(metadataInfo)
+            .metadata(metadataRequest)
             .events(new ArrayList<>())
             .build();
         String xmlRequest = createTestCalendarXml(calendar);
@@ -270,7 +270,7 @@ class CalendarControllerIntegrationTest {
      * @return the response entity
      */
     private ResponseEntity<CalendarResponse> createTestCalendarWithResponse(String id, String name, CalendarState state) {
-        InfoRequest metadataInfo = InfoRequest.builder()
+        CalendarMetadataRequest metadataRequest = CalendarMetadataRequest.builder()
             .status(state)
             .visibility(CalendarVisibility.PERSONAL)
             .createdAt(CREATED_AT)
@@ -284,7 +284,7 @@ class CalendarControllerIntegrationTest {
             .id(id)
             .name(name)
             .description("Test description")
-            .metadata(metadataInfo)
+            .metadata(metadataRequest)
             .events(new ArrayList<>())
             .build();
         String xmlRequest = createTestCalendarXml(calendar);
@@ -298,7 +298,7 @@ class CalendarControllerIntegrationTest {
             ? request.getDescription() 
             : "Test description";
         
-        String metadataXml = createTestMetadataInfoXml(request.getMetadata());
+        String metadataXml = createTestMetadataXml(request.getMetadata());
         String eventsXml = createTestMetadataEventsXml(request.getEvents());
         
         return """
@@ -323,7 +323,7 @@ class CalendarControllerIntegrationTest {
      * @param metadata the metadata request
      * @return formatted multiline XML string for the metadata section
      */
-    private String createTestMetadataInfoXml(InfoRequest metadata) {
+    private String createTestMetadataXml(CalendarMetadataRequest metadata) {
         if (metadata == null) {
             return """
                     <metadata>

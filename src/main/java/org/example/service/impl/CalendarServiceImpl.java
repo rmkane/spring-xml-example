@@ -5,23 +5,25 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.example.dto.request.CalendarRequest;
-import org.example.dto.request.InfoRequest;
+import org.example.dto.request.CalendarMetadataRequest;
 import org.example.dto.response.CalendarResponse;
 import org.example.exception.CalendarAlreadyExistsException;
+import org.example.manager.CalendarManager;
+import org.example.persistence.entity.Calendar;
 import org.example.mapper.CalendarRequestMapper;
 import org.example.mapper.CalendarResponseMapper;
 import org.example.model.CalendarState;
-import org.example.persistence.entity.CalendarEntity;
-import org.example.persistence.repository.CalendarRepository;
 import org.example.service.CalendarService;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CalendarServiceImpl implements CalendarService {
-    private final CalendarRepository calendarRepository;
+    private final CalendarManager calendarManager;
     private final CalendarRequestMapper calendarRequestMapper;
     private final CalendarResponseMapper calendarResponseMapper;
 
@@ -30,8 +32,18 @@ public class CalendarServiceImpl implements CalendarService {
      */
     @Override
     public Optional<CalendarResponse> findById(String id) {
-        return calendarRepository.findById(id)
+        log.info("Finding calendar by ID: {}", id);
+        Optional<CalendarResponse> result = calendarManager.findById(id)
             .map(calendarResponseMapper::toResponse);
+        if (result.isPresent()) {
+            log.debug("Calendar found: id={}, name={}, eventCount={}", 
+                id, 
+                result.get().getName(),
+                result.get().getEvents() != null ? result.get().getEvents().size() : 0);
+        } else {
+            log.debug("Calendar not found: id={}", id);
+        }
+        return result;
     }
 
     /**
@@ -39,7 +51,14 @@ public class CalendarServiceImpl implements CalendarService {
      */
     @Override
     public void deleteById(String id) {
-        calendarRepository.deleteById(id);
+        log.info("Deleting calendar: id={}", id);
+        boolean exists = calendarManager.findById(id).isPresent();
+        if (exists) {
+            calendarManager.deleteById(id);
+            log.info("Calendar deleted successfully: id={}", id);
+        } else {
+            log.warn("Attempted to delete non-existent calendar: id={}", id);
+        }
     }
 
     /**
@@ -47,10 +66,14 @@ public class CalendarServiceImpl implements CalendarService {
      */
     @Override
     public List<CalendarResponse> findAll() {
-        return calendarRepository.findAll()
+        log.info("Finding all calendars");
+        List<CalendarResponse> results = calendarManager.findAll()
             .stream()
             .map(calendarResponseMapper::toResponse)
             .toList();
+        log.info("Found {} calendar(s)", results.size());
+        log.debug("Calendar IDs: {}", results.stream().map(CalendarResponse::getId).toList());
+        return results;
     }
 
     /**
@@ -58,23 +81,50 @@ public class CalendarServiceImpl implements CalendarService {
      */
     @Override
     public CalendarResponse create(CalendarRequest calendar) {
-        if (calendarRepository.findById(calendar.getId()).isPresent()) {
-            throw new CalendarAlreadyExistsException(calendar.getId());
+        String calendarId = calendar.getId();
+        log.info("Creating calendar: id={}, name={}", calendarId, calendar.getName());
+        
+        // Check if calendar already exists
+        if (calendarId != null && !calendarId.isEmpty() && calendarManager.findById(calendarId).isPresent()) {
+            log.warn("Calendar already exists: id={}", calendarId);
+            throw new CalendarAlreadyExistsException(calendarId);
         }
-        if (calendar.getId() == null || calendar.getId().isEmpty()) {
-            calendar.setId(generateId());
+        
+        // Generate ID if not provided
+        if (calendarId == null || calendarId.isEmpty()) {
+            calendarId = generateId();
+            calendar.setId(calendarId);
+            log.debug("Generated new calendar ID: {}", calendarId);
         }
+        
         // Set default status from metadata if not provided
         if (calendar.getMetadata() != null && calendar.getMetadata().getStatus() == null) {
             calendar.getMetadata().setStatus(CalendarState.UNKNOWN);
+            log.debug("Set default status to UNKNOWN for calendar: id={}", calendarId);
         } else if (calendar.getMetadata() == null) {
-            InfoRequest metadataInfo = InfoRequest.builder()
+            CalendarMetadataRequest metadataRequest = CalendarMetadataRequest.builder()
                 .status(CalendarState.UNKNOWN)
                 .build();
-            calendar.setMetadata(metadataInfo);
+            calendar.setMetadata(metadataRequest);
+            log.debug("Created default metadata for calendar: id={}", calendarId);
         }
-        CalendarEntity entity = calendarRequestMapper.toEntity(calendar);
-        return calendarResponseMapper.toResponse(calendarRepository.save(entity));
+        
+        int eventCount = calendar.getEvents() != null ? calendar.getEvents().size() : 0;
+        log.debug("Creating calendar with {} event(s): id={}, status={}, visibility={}", 
+            eventCount,
+            calendarId,
+            calendar.getMetadata().getStatus(),
+            calendar.getMetadata().getVisibility());
+        
+        Calendar entity = calendarRequestMapper.toEntity(calendar);
+        CalendarResponse response = calendarResponseMapper.toResponse(calendarManager.save(entity));
+        
+        log.info("Calendar created successfully: id={}, name={}, eventCount={}", 
+            response.getId(), 
+            response.getName(),
+            response.getEvents() != null ? response.getEvents().size() : 0);
+        
+        return response;
     }
 
     /**

@@ -34,7 +34,7 @@ public class CalendarRequest {
 
     @JacksonXmlProperty(localName = "metadata")
     @Schema(description = "Calendar metadata section")
-    private InfoRequest metadata;
+    private CalendarMetadataRequest metadata;
 
     @JacksonXmlProperty(localName = "event")
     @JacksonXmlElementWrapper(useWrapping = false)

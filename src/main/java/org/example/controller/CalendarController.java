@@ -14,7 +14,9 @@ import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/calendars")
 @RequiredArgsConstructor
@@ -106,12 +108,16 @@ public class CalendarController {
      * @return ResponseEntity with status 201 (CREATED), Location header, and the created calendar response
      */
     public ResponseEntity<CalendarResponse> createCalendar(@RequestBody CalendarRequest calendar) {
+        log.info("POST /api/calendars - Creating calendar: id={}, name={}", 
+            calendar.getId(), calendar.getName());
         CalendarResponse response = calendarService.create(calendar);
         var location = ServletUriComponentsBuilder
             .fromCurrentRequest()
             .path("/{id}")
             .buildAndExpand(response.getId())
             .toUri();
+        log.info("POST /api/calendars - Calendar created: id={}, status=201, location={}", 
+            response.getId(), location);
         return ResponseEntity.status(HttpStatus.CREATED)
             .location(location)
             .body(response);
@@ -138,7 +144,9 @@ public class CalendarController {
      * @return ResponseEntity with status 200 (OK) and a list of all calendar responses
      */
     public ResponseEntity<List<CalendarResponse>> getCalendars() {
+        log.info("GET /api/calendars - Retrieving all calendars");
         List<CalendarResponse> response = calendarService.findAll();
+        log.info("GET /api/calendars - Retrieved {} calendar(s), status=200", response.size());
         return ResponseEntity.ok(response);
     }
 
@@ -172,8 +180,14 @@ public class CalendarController {
     public ResponseEntity<CalendarResponse> getCalendar(
         @Parameter(description = "Calendar ID", required = true, example = "20dbf44a-b88b-4742-a0b0-1d6c7dece68d")
         @PathVariable String id) {
+        log.info("GET /api/calendars/{} - Retrieving calendar", id);
         CalendarResponse response = calendarService.findById(id)
-            .orElseThrow(() -> new CalendarNotFoundException(id));
+            .orElseThrow(() -> {
+                log.warn("GET /api/calendars/{} - Calendar not found, status=404", id);
+                return new CalendarNotFoundException(id);
+            });
+        log.info("GET /api/calendars/{} - Calendar retrieved: name={}, status=200", 
+            id, response.getName());
         return ResponseEntity.ok(response);
     }
 
@@ -197,7 +211,9 @@ public class CalendarController {
     public ResponseEntity<Void> deleteCalendar(
         @Parameter(description = "Calendar ID", required = true, example = "20dbf44a-b88b-4742-a0b0-1d6c7dece68d")
         @PathVariable String id) {
+        log.info("DELETE /api/calendars/{} - Deleting calendar", id);
         calendarService.deleteById(id);
+        log.info("DELETE /api/calendars/{} - Calendar deleted, status=204", id);
         return ResponseEntity.noContent().build();
     }
 }

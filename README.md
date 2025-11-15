@@ -8,24 +8,30 @@ A Spring Boot application demonstrating a layered architecture with XML request 
 
 - [Architecture Overview](#architecture-overview)
 - [Data Flow](#data-flow)
-  - [Create Metadata Flow](#create-metadata-flow)
-  - [Retrieve Metadata Flow](#retrieve-metadata-flow)
-  - [Delete Metadata Flow](#delete-metadata-flow)
+  - [Create Calendar Flow](#create-calendar-flow)
+  - [Retrieve Calendar Flow](#retrieve-calendar-flow)
+  - [Delete Calendar Flow](#delete-calendar-flow)
 - [Data Models](#data-models)
-  - [MetadataRequest](#metadatarequest)
-  - [MetadataEntity](#metadataentity)
-  - [MetadataResponse](#metadataresponse)
-  - [Entry Models](#entry-models)
+  - [CalendarRequest](#calendarrequest)
+  - [Calendar](#calendar)
+  - [CalendarResponse](#calendarresponse)
+  - [CalendarMetadata](#calendarmetadata)
+  - [CalendarMetadataRequest / CalendarMetadataResponse](#calendarmetadatarequest--calendarmetadataresponse)
+  - [Event Models](#event-models)
   - [Enums](#enums)
 - [Mapping Strategy](#mapping-strategy)
   - [Benefits of MapStruct](#benefits-of-mapstruct)
 - [API Endpoints](#api-endpoints)
-  - [Create Metadata](#create-metadata)
-  - [Get All Metadata](#get-all-metadata)
-  - [Get Metadata by ID](#get-metadata-by-id)
-  - [Delete Metadata](#delete-metadata)
+  - [Create Calendar](#create-calendar)
+  - [Get All Calendars](#get-all-calendars)
+  - [Get Calendar by ID](#get-calendar-by-id)
+  - [Delete Calendar](#delete-calendar)
 - [Exception Handling](#exception-handling)
 - [Technologies](#technologies)
+- [Database Setup](#database-setup)
+  - [Starting PostgreSQL with Docker Compose](#starting-postgresql-with-docker-compose)
+  - [Stopping the Database](#stopping-the-database)
+  - [Database Schema](#database-schema)
 - [Running the Application](#running-the-application)
   - [Prerequisites](#prerequisites)
   - [Build and Run](#build-and-run)
@@ -59,88 +65,118 @@ This application follows a **layered architecture** pattern with clear separatio
                   │
                   ▼
 ┌─────────────────────────────────────┐
-│           Repository Layer          │
+│            Manager Layer            │
 ├─────────────────────────────────────┤
-│  - Data persistence                 │
+│  - Abstraction over persistence     │
 │  - Works only with Entity objects   │
 │  - No knowledge of DTOs             │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│           Repository Layer          │
+├─────────────────────────────────────┤
+│  - Data persistence (JDBC)          │
+│  - Database operations              │
+│  - Works only with Entity objects   │
 └─────────────────────────────────────┘
 ```
 
 ## Data Flow
 
-### Create Metadata Flow
+### Create Calendar Flow
 
-1. **Controller** receives `MetadataRequest` (XML format)
-2. **Service** validates and transforms `MetadataRequest` → `MetadataEntity` using `MetadataRequestMapper`
-3. **Repository** saves `MetadataEntity` to storage
-4. **Service** transforms `MetadataEntity` → `MetadataResponse` using `MetadataResponseMapper`
-5. **Controller** returns `ResponseEntity<MetadataResponse>` with:
+1. **Controller** receives `CalendarRequest` (XML format)
+2. **Service** validates and transforms `CalendarRequest` → `Calendar` using `CalendarRequestMapper`
+3. **Service** calls **Manager** to save the entity
+4. **Manager** delegates to **Repository** which saves `Calendar` to database
+5. **Service** transforms `Calendar` → `CalendarResponse` using `CalendarResponseMapper`
+6. **Controller** returns `ResponseEntity<CalendarResponse>` with:
    - Status: 201 Created
-   - Location header: `/api/metadata/{id}`
-   - Body: `MetadataResponse` (JSON format)
+   - Location header: `/api/calendars/{id}`
+   - Body: `CalendarResponse` (JSON format)
 
-### Retrieve Metadata Flow
+### Retrieve Calendar Flow
 
 1. **Controller** receives request with optional ID parameter
-2. **Service** calls **Repository** to fetch `MetadataEntity`(s)
-3. **Service** transforms `MetadataEntity` → `MetadataResponse` using `MetadataResponseMapper`
-4. **Controller** returns `ResponseEntity<MetadataResponse>` or `ResponseEntity<List<MetadataResponse>>` (JSON format)
+2. **Service** calls **Manager** to fetch `Calendar`(s)
+3. **Manager** delegates to **Repository** which queries the database
+4. **Service** transforms `Calendar` → `CalendarResponse` using `CalendarResponseMapper`
+5. **Controller** returns `ResponseEntity<CalendarResponse>` or `ResponseEntity<List<CalendarResponse>>` (JSON format)
 
-### Delete Metadata Flow
+### Delete Calendar Flow
 
 1. **Controller** receives DELETE request with ID parameter
-2. **Service** calls **Repository** to delete `MetadataEntity` by ID
-3. **Controller** returns `ResponseEntity<Void>` with status 204 No Content (idempotent)
+2. **Service** calls **Manager** to delete `Calendar` by ID
+3. **Manager** delegates to **Repository** which deletes from database
+4. **Controller** returns `ResponseEntity<Void>` with status 204 No Content (idempotent)
 
 ## Data Models
 
-### MetadataRequest
+### CalendarRequest
 
 - **Purpose**: Represents incoming XML data from clients
 - **Format**: XML (consumes `application/xml`)
 - **Annotations**: `@JacksonXmlRootElement`, `@JacksonXmlProperty`
 - **Location**: Controller layer
-- **Structure**: Contains nested `InfoRequest` (with status, dates) and `List<EntryRequest>` (with name, count, type)
+- **Structure**: Contains nested `CalendarMetadataRequest` (with status, visibility, timestamps) and `List<EventRequest>` (with name, description, type, dates, location)
 
-### MetadataEntity
+### Calendar
 
 - **Purpose**: Internal domain model for persistence
 - **Format**: Plain Java object
-- **Location**: Repository layer
-- **Note**: This is what gets saved to the database/storage
-- **Structure**: Contains nested `InfoEntity` and `List<EntryEntity>`
+- **Location**: Manager/Repository layer (entity)
+- **Note**: This is what gets saved to the database
+- **Structure**: Contains nested `CalendarMetadata` (with status, visibility, timestamps, count) and `List<CalendarEvent>` (with name, description, type, dates, location)
 
-### MetadataResponse
+### CalendarResponse
 
 - **Purpose**: Represents outgoing JSON data to clients
 - **Format**: JSON (produces `application/json`)
 - **Annotations**: `@JsonFormat` for date/time formatting
 - **Location**: Controller layer
-- **Structure**: Contains nested `InfoResponse` and `List<EntryResponse>`
+- **Structure**: Contains nested `CalendarMetadataResponse` and `List<EventResponse>`
 
-### Entry Models
+### CalendarMetadata
 
-- **EntryRequest/EntryResponse/EntryEntity**: Simplified structure with:
-  - `name` (String): Entry name
-  - `count` (Integer): Entry count
-  - `type` (EntryType enum): Entry type (STANDARD, PREMIUM, BASIC)
+- **Purpose**: Entity representing calendar metadata (status, visibility, timestamps, count)
+- **Location**: Persistence layer (entity)
+
+### CalendarMetadataRequest / CalendarMetadataResponse
+
+- **Purpose**: DTOs for calendar metadata in requests and responses
+- **Location**: DTO layer
+
+### Event Models
+
+- **EventRequest/EventResponse/CalendarEvent**: Calendar event structure with:
+  - `id` (String): Event UUID
+  - `name` (String): Event name
+  - `description` (String): Event description
+  - `type` (EventType enum): Event type (HOLIDAY, MEETING, APPOINTMENT, REMINDER, OTHER)
+  - `disabled` (Boolean): Whether event is disabled
+  - `allDay` (Boolean): Whether event is all-day
+  - `startDateTime` (LocalDateTime): Event start date and time
+  - `endDateTime` (LocalDateTime): Event end date and time
+  - `location` (String): Event location
+  - Timestamps: `createdAt`, `createdBy`, `updatedAt`, `updatedBy`
 
 ### Enums
 
-- **CalendarState**: UNKNOWN, ACTIVE, INACTIVE (maps to lowercase XML values)
-- **EntryType**: STANDARD, PREMIUM, BASIC (maps to lowercase XML values)
+- **CalendarState**: UNKNOWN, ACTIVE, INACTIVE (maps to lowercase XML values: "unknown", "active", "inactive")
+- **CalendarVisibility**: PERSONAL, SHARED, PRIVATE (maps to lowercase XML values: "personal", "shared", "private")
+- **EventType**: HOLIDAY, MEETING, APPOINTMENT, REMINDER, OTHER (maps to lowercase XML values)
 
 ## Mapping Strategy
 
 The application uses **MapStruct** for compile-time, type-safe mapping between DTOs and entities:
 
-- **MetadataRequestMapper**: Converts between `MetadataRequest` ↔ `MetadataEntity`
-  - Maps nested `InfoRequest` ↔ `InfoEntity`
-  - Maps `List<EntryRequest>` ↔ `List<EntryEntity>`
-- **MetadataResponseMapper**: Converts between `MetadataEntity` ↔ `MetadataResponse`
-  - Maps nested `InfoEntity` ↔ `InfoResponse`
-  - Maps `List<EntryEntity>` ↔ `List<EntryResponse>`
+- **CalendarRequestMapper**: Converts between `CalendarRequest` ↔ `Calendar`
+  - Maps nested `CalendarMetadataRequest` ↔ `CalendarMetadata`
+  - Maps `List<EventRequest>` ↔ `List<CalendarEvent>`
+- **CalendarResponseMapper**: Converts between `Calendar` ↔ `CalendarResponse`
+  - Maps nested `CalendarMetadata` ↔ `CalendarMetadataResponse`
+  - Maps `List<CalendarEvent>` ↔ `List<EventResponse>`
 
 ### Benefits of MapStruct
 
@@ -152,10 +188,10 @@ The application uses **MapStruct** for compile-time, type-safe mapping between D
 
 ## API Endpoints
 
-### Create Metadata
+### Create Calendar
 
 ```http
-POST /api/metadata
+POST /api/calendars
 Content-Type: application/xml
 Accept: application/json
 ```
@@ -164,112 +200,96 @@ Accept: application/json
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<metadata id="20dbf44a-b88b-4742-a0b0-1d6c7dece68d">
-    <name>Example Metadata</name>
-    <description>This is an example</description>
-    <info>
+<calendar id="20dbf44a-b88b-4742-a0b0-1d6c7dece68d">
+    <name>Work Calendar</name>
+    <description>Work schedule and meetings</description>
+    <metadata>
         <status>active</status>
-        <created-date>01/15/2025</created-date>
-        <created-time>14:30:00</created-time>
-        <created-datetime>01/15/2025 14:30:00</created-datetime>
-    </info>
-    <entry>
-        <name>Entry 1</name>
-        <count>10</count>
-        <type>standard</type>
-    </entry>
-    <entry>
-        <name>Entry 2</name>
-        <count>5</count>
-        <type>premium</type>
-    </entry>
-</metadata>
+        <visibility>shared</visibility>
+        <created-at>11/13/2025 12:00:00</created-at>
+        <created-by>John Doe</created-by>
+        <updated-at>11/13/2025 14:30:00</updated-at>
+        <updated-by>Jane Doe</updated-by>
+        <count>2</count>
+    </metadata>
+    <event id="a1b2c3d4-e5f6-7890-abcd-111111111111">
+        <name>Team Standup</name>
+        <description>Daily team standup meeting</description>
+        <type>meeting</type>
+        <disabled>false</disabled>
+        <all-day>false</all-day>
+        <start-datetime>11/14/2025 09:00:00</start-datetime>
+        <end-datetime>11/14/2025 09:30:00</end-datetime>
+        <location>Zoom</location>
+        <created-at>11/10/2025 10:00:00</created-at>
+        <created-by>John Doe</created-by>
+    </event>
+</calendar>
 ```
 
 **Response (JSON):**
 
 - **Status**: 201 Created
-- **Location Header**: `/api/metadata/{id}`
+- **Location Header**: `/api/calendars/{id}`
 
 ```json
 {
   "id": "20dbf44a-b88b-4742-a0b0-1d6c7dece68d",
-  "name": "Example Metadata",
-  "description": "This is an example",
-  "info": {
+  "name": "Work Calendar",
+  "description": "Work schedule and meetings",
+  "metadata": {
     "status": "active",
-    "createdDate": "01/15/2025",
-    "createdTime": "14:30:00",
-    "createdDatetime": "01/15/2025 14:30:00"
+    "visibility": "shared",
+    "createdAt": "11/13/2025 12:00:00",
+    "createdBy": "John Doe",
+    "updatedAt": "11/13/2025 14:30:00",
+    "updatedBy": "Jane Doe",
+    "count": 2
   },
-  "entries": [
+  "events": [
     {
-      "name": "Entry 1",
-      "count": 10,
-      "type": "standard"
-    },
-    {
-      "name": "Entry 2",
-      "count": 5,
-      "type": "premium"
+      "id": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "name": "Team Standup",
+      "description": "Daily team standup meeting",
+      "type": "meeting",
+      "disabled": false,
+      "allDay": false,
+      "startDateTime": "2025-11-14T09:00:00",
+      "endDateTime": "2025-11-14T09:30:00",
+      "location": "Zoom",
+      "createdAt": "11/10/2025 10:00:00",
+      "createdBy": "John Doe"
     }
   ]
 }
 ```
 
-### Get All Metadata
+### Get All Calendars
 
 ```http
-GET /api/metadata
+GET /api/calendars
 Accept: application/json
 ```
 
 **Response (JSON):**
 
-```json
-[
-  {
-    "id": "1",
-    "name": "Example Metadata",
-    ...
-  }
-]
-```
+Returns a list of all calendars with their events.
 
-### Get Metadata by ID
+### Get Calendar by ID
 
 ```http
-GET /api/metadata/{id}
+GET /api/calendars/{id}
 Accept: application/json
 ```
 
 **Response (JSON):**
 
-```json
-{
-  "id": "20dbf44a-b88b-4742-a0b0-1d6c7dece68d",
-  "name": "Example Metadata",
-  "description": "This is an example",
-  "info": {
-    "status": "active",
-    "createdDate": "01/15/2025",
-    "createdTime": "14:30:00",
-    "createdDatetime": "01/15/2025 14:30:00"
-  },
-  "entries": [
-    {
-      "name": "Entry 1",
-      "count": 10,
-      "type": "standard"
-    }
-  ]
-}
-```
+Returns a single calendar with its metadata and events.
 
-### Delete Metadata
+### Delete Calendar
 
 ```http
-DELETE /api/metadata/{id}
+DELETE /api/calendars/{id}
 ```
 
 **Response:**
@@ -281,8 +301,8 @@ DELETE /api/metadata/{id}
 
 The application includes a global exception handler using `@ControllerAdvice` that returns standardized `ProblemDetail` responses (RFC 7807):
 
-- `MetadataNotFoundException`: Returns 404 Not Found with ProblemDetail
-- `MetadataAlreadyExistsException`: Returns 400 Bad Request with ProblemDetail
+- `CalendarNotFoundException`: Returns 404 Not Found with ProblemDetail
+- `CalendarAlreadyExistsException`: Returns 400 Bad Request with ProblemDetail
 
 All controller methods return `ResponseEntity` wrappers for explicit HTTP status code and header control.
 
@@ -294,6 +314,51 @@ All controller methods return `ResponseEntity` wrappers for explicit HTTP status
 - **Lombok**: Boilerplate code reduction
 - **SpringDoc OpenAPI 2.8.14**: API documentation (Swagger UI)
 - **Java 17**: Programming language
+
+## Database Setup
+
+The application uses PostgreSQL with Flyway for database migrations. A Docker Compose file is provided for easy database setup.
+
+### Starting PostgreSQL with Docker Compose
+
+1. Start the PostgreSQL database:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+2. Verify the database is running:
+
+   ```bash
+   docker-compose ps
+   ```
+
+3. The database will be available at:
+
+   - **Host**: `localhost`
+   - **Port**: `5432`
+   - **Database**: `calendardb`
+   - **Username**: `calendaruser`
+   - **Password**: `calendarpass`
+
+4. Flyway will automatically run migrations when the application starts, creating the `calendars` and `events` tables.
+
+### Stopping the Database
+
+```bash
+docker-compose down
+```
+
+To also remove the data volume:
+
+```bash
+docker-compose down -v
+```
+
+### Database Schema
+
+- **calendars**: Stores calendar information with metadata (status, visibility, timestamps, etc.)
+- **events**: Stores events linked to calendars via foreign key relationship
 
 ## Running the Application
 
@@ -333,11 +398,11 @@ APPLICATION FAILED TO START
 
 Description:
 
-Parameter 1 of constructor in org.example.MetadataServiceImpl required a bean of type 'org.example.MetadataRequestMapper' that could not be found.
+Parameter 1 of constructor in org.example.CalendarServiceImpl required a bean of type 'org.example.CalendarRequestMapper' that could not be found.
 
 Action:
 
-Consider defining a bean of type 'org.example.MetadataRequestMapper' in your configuration.
+Consider defining a bean of type 'org.example.CalendarRequestMapper' in your configuration.
 ```
 
 Instead, you may need to run this single command:
@@ -363,7 +428,7 @@ Once running, visit: `http://localhost:8080/swagger-ui.html`
 
 ## Future Enhancements
 
-- Replace in-memory storage with a real database (JPA/Hibernate)
+- ~~Replace in-memory storage with a real database (JPA/Hibernate)~~ ✅ Done - Using JDBC with PostgreSQL
 - Add validation annotations to DTOs
 - Implement pagination for list endpoints
 - Add authentication/authorization

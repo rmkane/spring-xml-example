@@ -11,6 +11,13 @@ DEBUG_PORT := 8787
 SPRING_BOOT_PID := .spring-boot.pid
 JAR_PID := .jar.pid
 
+# Database configuration
+DB_NAME := calendardb
+DB_USER := calendaruser
+DB_PASSWORD := calendarpass
+DB_HOST := localhost
+DB_PORT := 5432
+
 DEBUG_JVM_ARGS := -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=$(DEBUG_PORT)
 
 # =============================================================================
@@ -77,7 +84,8 @@ endef
 		clean install package verify \
 		run run-debug run-jar \
 		stop stop-jar stop-spring-boot \
-		test test-integration test-all
+		test test-integration test-all \
+		db-start db-stop db-reset db-psql db-status
 
 # =============================================================================
 # Build Targets
@@ -140,6 +148,59 @@ stop-jar: ## Stop the application running from JAR
 	$(call stop_process,$(JAR_PID),Application)
 	@echo "Checking for processes on port $(SERVER_PORT)..."
 	$(call kill_by_port,$(SERVER_PORT),Application)
+
+# =============================================================================
+# Database Targets
+# =============================================================================
+
+db-start: ## Start the PostgreSQL database using Docker Compose
+	@echo "Starting PostgreSQL database..."
+	@docker-compose up -d
+	@echo "Waiting for database to be ready..."
+	@timeout=30; \
+	while [ $$timeout -gt 0 ]; do \
+		if docker-compose exec -T postgres pg_isready -U $(DB_USER) -d $(DB_NAME) > /dev/null 2>&1; then \
+			echo "Database is ready!"; \
+			break; \
+		fi; \
+		sleep 1; \
+		timeout=$$((timeout - 1)); \
+	done; \
+	if [ $$timeout -eq 0 ]; then \
+		echo "Warning: Database may not be fully ready yet."; \
+	fi
+
+db-stop: ## Stop the PostgreSQL database
+	@echo "Stopping PostgreSQL database..."
+	@docker-compose stop
+	@echo "Database stopped."
+
+db-reset: ## Stop and remove the database (including volumes) - WARNING: This deletes all data!
+	@echo "WARNING: This will delete all database data!"
+	@echo -n "Are you sure? [y/N] "; \
+	read REPLY; \
+	if [ "$$REPLY" = "y" ] || [ "$$REPLY" = "Y" ]; then \
+		echo "Stopping and removing database and volumes..."; \
+		docker-compose down -v; \
+		echo "Database reset complete."; \
+	else \
+		echo "Reset cancelled."; \
+	fi
+
+db-psql: ## Open a psql interactive session to the PostgreSQL database
+	@echo "Connecting to PostgreSQL database..."
+	@docker-compose exec postgres psql -U $(DB_USER) -d $(DB_NAME)
+
+db-status: ## Check the status of the PostgreSQL database
+	@echo "Database container status:"
+	@docker-compose ps postgres || echo "Database is not running."
+	@echo ""
+	@if docker-compose ps postgres | grep -q "Up"; then \
+		echo "Testing database connection..."; \
+		docker-compose exec -T postgres pg_isready -U $(DB_USER) -d $(DB_NAME) && \
+		echo "✓ Database is ready and accepting connections." || \
+		echo "✗ Database is not ready."; \
+	fi
 
 # =============================================================================
 # Test Targets

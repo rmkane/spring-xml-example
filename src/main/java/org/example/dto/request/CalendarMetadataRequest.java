@@ -16,8 +16,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(name = "InfoRequest", description = "Calendar metadata request")
-public class InfoRequest {
+@Schema(name = "CalendarMetadataRequest", description = "Calendar metadata request")
+public class CalendarMetadataRequest {
     @JacksonXmlProperty(localName = "status")
     @Schema(description = "Calendar status", example = "active", allowableValues = {"unknown", "active", "inactive"})
     private CalendarState status;
@@ -48,3 +48,4 @@ public class InfoRequest {
     @Schema(description = "Event count", example = "2", type = "integer")
     private Integer count;
 }
+

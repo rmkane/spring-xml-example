@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 import org.example.dto.request.CalendarRequest;
 import org.example.dto.request.EventRequest;
-import org.example.dto.request.InfoRequest;
+import org.example.dto.request.CalendarMetadataRequest;
 import org.example.model.CalendarVisibility;
 import org.example.model.EventType;
 import org.example.model.CalendarState;
@@ -48,7 +48,7 @@ class CalendarRequestXmlParsingTest {
 
         // Verify metadata section
         assertNotNull(request.getMetadata());
-        InfoRequest metadata = request.getMetadata();
+        CalendarMetadataRequest metadata = request.getMetadata();
         assertEquals(CalendarState.ACTIVE, metadata.getStatus());
         assertEquals(CalendarVisibility.SHARED, metadata.getVisibility());
         assertEquals("11/13/2025 12:00:00", metadata.getCreatedAt());

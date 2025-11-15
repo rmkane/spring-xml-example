@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InfoEntity {
+public class CalendarMetadata {
     private CalendarState status;
     private CalendarVisibility visibility;
     private String createdAt;
@@ -19,3 +19,4 @@ public class InfoEntity {
     private String updatedBy;
     private Integer count;
 }
+

@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(name = "InfoResponse", description = "Calendar metadata response")
-public class InfoResponse {
+@Schema(name = "CalendarMetadataResponse", description = "Calendar metadata response")
+public class CalendarMetadataResponse {
     @Schema(description = "Calendar status", example = "active", allowableValues = {"unknown", "active", "inactive"})
     private CalendarState status;
 
@@ -38,3 +38,4 @@ public class InfoResponse {
     @Schema(description = "Event count", example = "2", type = "integer")
     private Integer count;
 }
+

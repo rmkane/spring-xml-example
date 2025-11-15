@@ -22,7 +22,7 @@ public class CalendarResponse {
     private String description;
 
     @Schema(description = "Calendar metadata section")
-    private InfoResponse metadata;
+    private CalendarMetadataResponse metadata;
 
     @Schema(description = "List of calendar events")
     private List<EventResponse> events;

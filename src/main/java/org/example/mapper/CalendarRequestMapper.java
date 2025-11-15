@@ -4,68 +4,68 @@ import java.util.List;
 
 import org.example.dto.request.CalendarRequest;
 import org.example.dto.request.EventRequest;
-import org.example.dto.request.InfoRequest;
-import org.example.persistence.entity.CalendarEntity;
-import org.example.persistence.entity.EventEntity;
-import org.example.persistence.entity.InfoEntity;
+import org.example.dto.request.CalendarMetadataRequest;
+import org.example.persistence.entity.Calendar;
+import org.example.persistence.entity.CalendarEvent;
+import org.example.persistence.entity.CalendarMetadata;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 /**
- * MapStruct mapper for converting between CalendarRequest DTOs and CalendarEntity.
+ * MapStruct mapper for converting between CalendarRequest DTOs and Calendar.
  */
 @Mapper(componentModel = "spring")
 public interface CalendarRequestMapper {
     /**
-     * Maps a CalendarEntity to a CalendarRequest DTO.
+     * Maps a Calendar to a CalendarRequest DTO.
      *
-     * @param entity the entity to map
+     * @param calendar the calendar entity to map
      * @return the mapped request DTO
      */
     @Mapping(target = "metadata", source = "metadata")
     @Mapping(target = "events", source = "events")
-    CalendarRequest toRequest(CalendarEntity entity);
+    CalendarRequest toRequest(Calendar calendar);
 
     /**
-     * Maps a CalendarRequest DTO to a CalendarEntity.
+     * Maps a CalendarRequest DTO to a Calendar.
      *
      * @param request the request DTO to map
-     * @return the mapped entity
+     * @return the mapped calendar entity
      */
     @Mapping(target = "metadata", source = "metadata")
     @Mapping(target = "events", source = "events")
-    CalendarEntity toEntity(CalendarRequest request);
+    Calendar toEntity(CalendarRequest request);
 
     /**
-     * Maps an InfoEntity to an InfoRequest.
+     * Maps a CalendarMetadata to a CalendarMetadataRequest.
      *
-     * @param infoEntity the info entity to map
-     * @return the mapped info request
+     * @param calendarMetadata the calendar metadata to map
+     * @return the mapped calendar metadata request
      */
-    InfoRequest toInfoRequest(InfoEntity infoEntity);
+    CalendarMetadataRequest toCalendarMetadataRequest(CalendarMetadata calendarMetadata);
 
     /**
-     * Maps an InfoRequest to an InfoEntity.
+     * Maps a CalendarMetadataRequest to a CalendarMetadata.
      *
-     * @param infoRequest the info request to map
-     * @return the mapped info entity
+     * @param calendarMetadataRequest the calendar metadata request to map
+     * @return the mapped calendar metadata
      */
-    InfoEntity toInfoEntity(InfoRequest infoRequest);
+    CalendarMetadata toCalendarMetadata(CalendarMetadataRequest calendarMetadataRequest);
 
     /**
-     * Maps an EventRequest to an EventEntity.
+     * Maps an EventRequest to a CalendarEvent.
      *
      * @param eventRequest the event request to map
-     * @return the mapped event entity
+     * @return the mapped calendar event
      */
-    EventEntity toEventEntity(EventRequest eventRequest);
+    CalendarEvent toCalendarEvent(EventRequest eventRequest);
 
     /**
-     * Maps a list of EventRequest to a list of EventEntity.
+     * Maps a list of EventRequest to a list of CalendarEvent.
      *
      * @param eventRequests the list of event requests to map
-     * @return the list of mapped event entities
+     * @return the list of mapped calendar events
      */
-    List<EventEntity> toEventEntityList(List<EventRequest> eventRequests);
+    List<CalendarEvent> toCalendarEventList(List<EventRequest> eventRequests);
 }
 
