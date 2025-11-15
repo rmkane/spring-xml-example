@@ -6,25 +6,30 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * Utility class for formatting text in bordered boxes.
+ * Utility class for formatting text in bordered boxes with header, body, and footer sections.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BoxFormatter {
 
     /**
-     * Prints text lines inside a bordered box with a header and body section.
+     * Prints text lines inside a bordered box with a header, body, and optional footer section.
      *
      * @param header the header text
      * @param bodyLines the lines of text to print in the body
+     * @param footerLines the lines of text to print in the footer (optional)
      */
-    public static void printBoxed(String header, List<String> bodyLines) {
-        // Find the longest line (header or body) to determine box width
+    public static void printBoxed(String header, List<String> bodyLines, List<String> footerLines) {
+        // Find the longest line (header, body, or footer) to determine box width
         int headerWidth = header != null ? header.length() : 0;
-        int maxBodyWidth = bodyLines.stream()
+        int maxBodyWidth = bodyLines != null ? bodyLines.stream()
             .mapToInt(String::length)
             .max()
-            .orElse(0);
-        int maxWidth = Math.max(headerWidth, maxBodyWidth);
+            .orElse(0) : 0;
+        int maxFooterWidth = footerLines != null ? footerLines.stream()
+            .mapToInt(String::length)
+            .max()
+            .orElse(0) : 0;
+        int maxWidth = Math.max(Math.max(headerWidth, maxBodyWidth), maxFooterWidth);
         
         // Add padding (2 spaces on each side)
         int boxWidth = maxWidth + 4;
@@ -42,20 +47,44 @@ public class BoxFormatter {
             System.out.println(paddedHeader);
             
             // Print separator between header and body
-            if (!bodyLines.isEmpty()) {
+            if (bodyLines != null && !bodyLines.isEmpty()) {
                 System.out.println(horizontalSeparator);
             }
         }
         
         // Print body lines (no separators between body lines)
-        for (String line : bodyLines) {
-            int padding = maxWidth - line.length();
-            String paddedLine = "│ " + line + " ".repeat(padding) + " │";
-            System.out.println(paddedLine);
+        if (bodyLines != null) {
+            for (String line : bodyLines) {
+                int padding = maxWidth - line.length();
+                String paddedLine = "│ " + line + " ".repeat(padding) + " │";
+                System.out.println(paddedLine);
+            }
+        }
+        
+        // Print separator between body and footer if footer exists
+        if (footerLines != null && !footerLines.isEmpty()) {
+            System.out.println(horizontalSeparator);
+            
+            // Print footer lines (no separators between footer lines)
+            for (String line : footerLines) {
+                int padding = maxWidth - line.length();
+                String paddedLine = "│ " + line + " ".repeat(padding) + " │";
+                System.out.println(paddedLine);
+            }
         }
         
         // Print bottom border
         System.out.println(horizontalFooter);
+    }
+
+    /**
+     * Prints text lines inside a bordered box with a header and body section (no footer).
+     *
+     * @param header the header text
+     * @param bodyLines the lines of text to print in the body
+     */
+    public static void printBoxed(String header, List<String> bodyLines) {
+        printBoxed(header, bodyLines, null);
     }
 }
 

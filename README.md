@@ -38,6 +38,10 @@ A Spring Boot application demonstrating a layered architecture with XML request 
   - [Get Calendar by ID](#get-calendar-by-id)
   - [Delete Calendar](#delete-calendar)
 - [Exception Handling](#exception-handling)
+- [Health Checks](#health-checks)
+  - [Health Endpoint](#health-endpoint)
+  - [Kubernetes Probes](#kubernetes-probes)
+- [Connection Pool Configuration](#connection-pool-configuration)
 - [Technologies](#technologies)
 - [Database Setup](#database-setup)
   - [Starting PostgreSQL with Docker Compose](#starting-postgresql-with-docker-compose)
@@ -424,12 +428,54 @@ The application includes a global exception handler using `@ControllerAdvice` th
 
 - `CalendarNotFoundException`: Returns 404 Not Found with ProblemDetail
 - `CalendarAlreadyExistsException`: Returns 400 Bad Request with ProblemDetail
+- `DuplicateKeyException`: Returns 409 Conflict with ProblemDetail
+- `MethodArgumentNotValidException`: Returns 400 Bad Request with validation error details
+- `HttpMessageNotReadableException`: Returns 400 Bad Request for XML parsing errors
 
 All controller methods return `ResponseEntity` wrappers for explicit HTTP status code and header control.
+
+## Health Checks
+
+The application includes Spring Boot Actuator health checks for monitoring:
+
+### Health Endpoint
+
+```http
+GET /actuator/health
+```
+
+**Response:**
+
+- **Status**: 200 OK when healthy
+- **Details**: Database connectivity, disk space, and other health indicators
+
+### Kubernetes Probes
+
+The health endpoint supports Kubernetes liveness and readiness probes:
+
+- **Liveness**: `/actuator/health/liveness`
+- **Readiness**: `/actuator/health/readiness`
+
+Health details are shown when authorized (configured via `management.endpoint.health.show-details`).
+
+## Connection Pool Configuration
+
+The application uses HikariCP for database connection pooling with production-ready settings:
+
+- **Minimum Idle**: 5 connections
+- **Maximum Pool Size**: 20 connections
+- **Connection Timeout**: 30 seconds
+- **Idle Timeout**: 10 minutes
+- **Max Lifetime**: 30 minutes
+- **Leak Detection**: 60 seconds threshold
+
+Connection pool metrics are logged at INFO level for monitoring.
 
 ## Technologies
 
 - **Spring Boot 3.5.6**: Application framework
+- **Spring Boot Actuator**: Health checks and monitoring
+- **HikariCP**: High-performance JDBC connection pool
 - **Jackson XML**: XML serialization/deserialization (replaces JAXB)
 - **MapStruct 1.6.3**: DTO mapping
 - **Lombok**: Boilerplate code reduction

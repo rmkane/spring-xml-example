@@ -112,11 +112,11 @@ clean: ## Clean the project (removes target directory and PID files)
 
 run: ## Run the Spring Boot application using Maven (foreground)
 	@echo "Starting Spring Boot application..."
-	@mvn spring-boot:run
+	@mvn clean spring-boot:run
 
 run-debug: ## Run the Spring Boot application with debug port $(DEBUG_PORT)
 	@echo "Starting Spring Boot application in debug mode (port $(DEBUG_PORT))..."
-	@mvn spring-boot:run -Dspring-boot.run.jvmArguments="$(DEBUG_JVM_ARGS)" & echo $$! > $(SPRING_BOOT_PID)
+	@mvn clean spring-boot:run -Dspring-boot.run.jvmArguments="$(DEBUG_JVM_ARGS)" & echo $$! > $(SPRING_BOOT_PID)
 	@echo "Spring Boot started in debug mode with PID: $$(cat $(SPRING_BOOT_PID))"
 	@echo "Debugger listening on port $(DEBUG_PORT)"
 	@echo "To stop, run: make stop-spring-boot"

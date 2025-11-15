@@ -6,6 +6,18 @@ spring:
     username: calendaruser
     password: calendarpass
     driver-class-name: org.postgresql.Driver
+    hikari:
+      # Connection pool settings
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      pool-name: CalendarHikariCP
+      # Connection validation
+      connection-test-query: SELECT 1
+      validation-timeout: 3000
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -22,8 +34,25 @@ springdoc:
     enabled: true
     path: /swagger-ui.html
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
+
 logging:
   level:
     org.example: DEBUG
     org.springframework: WARN
     org.springdoc: ERROR
+    com.zaxxer.hikari: INFO
