@@ -10,6 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-test-db.sh:/docker-entrypoint-initdb.d/init-test-db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U calendaruser -d calendardb"]
       interval: 10s
@@ -18,4 +19,3 @@ services:
 
 volumes:
   postgres_data:
-

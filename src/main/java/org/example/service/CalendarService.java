@@ -40,5 +40,10 @@ public interface CalendarService {
      * @throws org.example.exception.CalendarAlreadyExistsException if a calendar entry with the same ID already exists
      */
     CalendarResponse create(CalendarRequest calendar);
+
+    /**
+     * Deletes all calendar entries.
+     */
+    void deleteAll();
 }
 

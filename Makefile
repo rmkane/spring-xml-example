@@ -85,7 +85,7 @@ endef
 		run run-debug run-jar \
 		stop stop-jar stop-spring-boot \
 		test test-integration test-all \
-		db-start db-stop db-reset db-psql db-status
+		db-start db-stop db-reset db-psql db-psql-test db-status db-setup-test
 
 # =============================================================================
 # Build Targets
@@ -110,11 +110,9 @@ clean: ## Clean the project (removes target directory and PID files)
 # Run Targets
 # =============================================================================
 
-run: ## Run the Spring Boot application using Maven
+run: ## Run the Spring Boot application using Maven (foreground)
 	@echo "Starting Spring Boot application..."
-	@mvn spring-boot:run & echo $$! > $(SPRING_BOOT_PID)
-	@echo "Spring Boot started with PID: $$(cat $(SPRING_BOOT_PID))"
-	@echo "To stop, run: make stop-spring-boot"
+	@mvn spring-boot:run
 
 run-debug: ## Run the Spring Boot application with debug port $(DEBUG_PORT)
 	@echo "Starting Spring Boot application in debug mode (port $(DEBUG_PORT))..."
@@ -169,6 +167,10 @@ db-start: ## Start the PostgreSQL database using Docker Compose
 	if [ $$timeout -eq 0 ]; then \
 		echo "Warning: Database may not be fully ready yet."; \
 	fi
+	@echo "Ensuring test database exists..."
+	@docker-compose exec -T postgres psql -U $(DB_USER) -d $(DB_NAME) -tc "SELECT 1 FROM pg_database WHERE datname = 'calendardb_test'" | grep -q 1 || \
+		docker-compose exec -T postgres psql -U $(DB_USER) -d $(DB_NAME) -c "CREATE DATABASE calendardb_test;" && \
+		echo "Test database created." || echo "Test database already exists."
 
 db-stop: ## Stop the PostgreSQL database
 	@echo "Stopping PostgreSQL database..."
@@ -191,6 +193,10 @@ db-psql: ## Open a psql interactive session to the PostgreSQL database
 	@echo "Connecting to PostgreSQL database..."
 	@docker-compose exec postgres psql -U $(DB_USER) -d $(DB_NAME)
 
+db-psql-test: ## Open a psql interactive session to the test database
+	@echo "Connecting to test database..."
+	@docker-compose exec postgres psql -U $(DB_USER) -d calendardb_test
+
 db-status: ## Check the status of the PostgreSQL database
 	@echo "Database container status:"
 	@docker-compose ps postgres || echo "Database is not running."
@@ -200,7 +206,23 @@ db-status: ## Check the status of the PostgreSQL database
 		docker-compose exec -T postgres pg_isready -U $(DB_USER) -d $(DB_NAME) && \
 		echo "✓ Database is ready and accepting connections." || \
 		echo "✗ Database is not ready."; \
+		echo ""; \
+		echo "Checking test database..."; \
+		docker-compose exec -T postgres psql -U $(DB_USER) -d $(DB_NAME) -tc "SELECT 1 FROM pg_database WHERE datname = 'calendardb_test'" | grep -q 1 && \
+		echo "✓ Test database exists." || \
+		echo "✗ Test database does not exist. Run 'make db-setup-test' to create it."; \
 	fi
+
+db-setup-test: ## Create the test database (calendardb_test)
+	@echo "Creating test database..."
+	@if ! docker-compose ps postgres | grep -q "Up"; then \
+		echo "Error: Database container is not running. Run 'make db-start' first."; \
+		exit 1; \
+	fi
+	@docker-compose exec -T postgres psql -U $(DB_USER) -d $(DB_NAME) -tc "SELECT 1 FROM pg_database WHERE datname = 'calendardb_test'" | grep -q 1 && \
+		echo "Test database already exists." || \
+		(docker-compose exec -T postgres psql -U $(DB_USER) -d $(DB_NAME) -c "CREATE DATABASE calendardb_test;" && \
+		echo "Test database created successfully.")
 
 # =============================================================================
 # Test Targets

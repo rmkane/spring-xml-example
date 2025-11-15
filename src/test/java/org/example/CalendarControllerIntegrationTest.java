@@ -9,6 +9,7 @@ import org.example.dto.response.CalendarResponse;
 import org.example.model.CalendarVisibility;
 import org.example.model.CalendarState;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -48,18 +51,18 @@ class CalendarControllerIntegrationTest {
     private ResourceLoader resourceLoader;
 
     private static final String BASE_URL = "/api/calendars";
+    
+    // Track calendar IDs created during tests for cleanup
+    private final Set<String> createdCalendarIds = new HashSet<>();
+
+    // =============================================================================
+    // CREATE Tests
+    // =============================================================================
 
     @Test
     @DisplayName("Should create calendar from XML and return JSON")
     void shouldCreateCalendarFromXml() throws IOException {
-        // Given - delete calendar if it exists (for test isolation)
-        String calendarId = "20dbf44a-b88b-4742-a0b0-1d6c7dece68d";
-        try {
-            restTemplate.delete(BASE_URL + "/" + calendarId);
-        } catch (Exception e) {
-            // Ignore - calendar might not exist
-        }
-        
+        // Given
         String xmlRequest = loadXmlResource("/calendars/20dbf44a-b88b-4742-a0b0-1d6c7dece68d.xml");
         HttpEntity<String> request = new HttpEntity<>(xmlRequest, createXmlHeaders());
 
@@ -69,10 +72,15 @@ class CalendarControllerIntegrationTest {
             request,
             CalendarResponse.class
         );
+        
+        // Track for cleanup
+        CalendarResponse responseBody = response.getBody();
+        if (responseBody != null && responseBody.getId() != null) {
+            createdCalendarIds.add(responseBody.getId());
+        }
 
         // Then
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
         CalendarResponse body = response.getBody();
         assertNotNull(body);
         assertEquals("20dbf44a-b88b-4742-a0b0-1d6c7dece68d", body.getId());
@@ -87,96 +95,8 @@ class CalendarControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should retrieve all metadata")
-    void shouldFindAllMetadata() {
-        // Given - create a metadata entry first
-        createTestCalendar("test-all-1", "Test 1", CalendarState.ACTIVE);
-        createTestCalendar("test-all-2", "Test 2", CalendarState.INACTIVE);
-
-        // When
-        ResponseEntity<CalendarResponse[]> response = restTemplate.getForEntity(
-            BASE_URL,
-            CalendarResponse[].class
-        );
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        CalendarResponse[] body = response.getBody();
-        assertNotNull(body);
-        assertTrue(body.length >= 2);
-    }
-
-    @Test
-    @DisplayName("Should retrieve metadata by ID")
-    void shouldFindMetadataById() {
-        // Given
-        String testId = "test-find-by-id";
-        createTestCalendar(testId, "Find By ID Test", CalendarState.ACTIVE);
-
-        // When
-        ResponseEntity<CalendarResponse> response = restTemplate.getForEntity(
-            BASE_URL + "/" + testId,
-            CalendarResponse.class
-        );
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        CalendarResponse body = response.getBody();
-        assertNotNull(body);
-        assertEquals(testId, body.getId());
-        assertEquals("Find By ID Test", body.getName());
-        assertNotNull(body.getMetadata());
-        assertEquals(CalendarState.ACTIVE, body.getMetadata().getStatus());
-    }
-
-    @Test
-    @DisplayName("Should return 404 when metadata not found")
-    void shouldReturn404WhenMetadataNotFound() {
-        // When
-        ResponseEntity<String> response = restTemplate.getForEntity(
-            BASE_URL + "/non-existent-id",
-            String.class
-        );
-
-        // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-        String body = response.getBody();
-        assertNotNull(body);
-        assertTrue(body.contains("not found") || body.contains("non-existent-id"));
-    }
-
-    @Test
-    @DisplayName("Should delete metadata by ID")
-    void shouldDeleteMetadataById() {
-        // Given
-        String testId = "test-delete";
-        createTestCalendar(testId, "Delete Test", CalendarState.ACTIVE);
-
-        // When
-        ResponseEntity<Void> response = restTemplate.exchange(
-            BASE_URL + "/" + testId,
-            HttpMethod.DELETE,
-            null,
-            Void.class
-        );
-
-        // Then
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-
-        // Verify it's deleted
-        ResponseEntity<String> getResponse = restTemplate.getForEntity(
-            BASE_URL + "/" + testId,
-            String.class
-        );
-        assertEquals(HttpStatus.NOT_FOUND, getResponse.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("Should return 400 when creating duplicate metadata")
-    void shouldReturn400WhenCreatingDuplicateMetadata() {
+    @DisplayName("Should return 400 when creating duplicate calendar")
+    void shouldReturn400WhenCreatingDuplicateCalendar() {
         // Given
         String testId = "test-duplicate";
         createTestCalendar(testId, "First", CalendarState.ACTIVE);
@@ -243,6 +163,102 @@ class CalendarControllerIntegrationTest {
         }
     }
 
+    // =============================================================================
+    // READ Tests
+    // =============================================================================
+
+    @Test
+    @DisplayName("Should retrieve all calendars")
+    void shouldFindAllCalendars() {
+        // Given - create calendars first
+        createTestCalendar("test-all-1", "Test 1", CalendarState.ACTIVE);
+        createTestCalendar("test-all-2", "Test 2", CalendarState.INACTIVE);
+
+        // When
+        ResponseEntity<CalendarResponse[]> response = restTemplate.getForEntity(
+            BASE_URL,
+            CalendarResponse[].class
+        );
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        CalendarResponse[] body = response.getBody();
+        assertNotNull(body);
+        assertTrue(body.length >= 2);
+    }
+
+    @Test
+    @DisplayName("Should retrieve calendar by ID")
+    void shouldFindCalendarById() {
+        // Given
+        String testId = "test-find-by-id";
+        createTestCalendar(testId, "Find By ID Test", CalendarState.ACTIVE);
+
+        // When
+        ResponseEntity<CalendarResponse> response = restTemplate.getForEntity(
+            BASE_URL + "/" + testId,
+            CalendarResponse.class
+        );
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        CalendarResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals(testId, body.getId());
+        assertEquals("Find By ID Test", body.getName());
+        assertNotNull(body.getMetadata());
+        assertEquals(CalendarState.ACTIVE, body.getMetadata().getStatus());
+    }
+
+    @Test
+    @DisplayName("Should return 404 when calendar not found")
+    void shouldReturn404WhenCalendarNotFound() {
+        // When
+        ResponseEntity<String> response = restTemplate.getForEntity(
+            BASE_URL + "/non-existent-id",
+            String.class
+        );
+
+        // Then
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        String body = response.getBody();
+        assertNotNull(body);
+        assertTrue(body.contains("not found") || body.contains("non-existent-id"));
+    }
+
+    // =============================================================================
+    // DELETE Tests
+    // =============================================================================
+
+    @Test
+    @DisplayName("Should delete calendar by ID")
+    void shouldDeleteCalendarById() {
+        // Given
+        String testId = "test-delete";
+        createTestCalendar(testId, "Delete Test", CalendarState.ACTIVE);
+
+        // When
+        ResponseEntity<Void> response = restTemplate.exchange(
+            BASE_URL + "/" + testId,
+            HttpMethod.DELETE,
+            null,
+            Void.class
+        );
+
+        // Then
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        // Verify it's deleted
+        ResponseEntity<String> getResponse = restTemplate.getForEntity(
+            BASE_URL + "/" + testId,
+            String.class
+        );
+        assertEquals(HttpStatus.NOT_FOUND, getResponse.getStatusCode());
+    }
+
     /**
      * Loads an XML file from the classpath resources.
      *
@@ -270,7 +286,6 @@ class CalendarControllerIntegrationTest {
 
     /**
      * Creates test calendar and returns the response.
-     * Deletes existing calendar first if it exists to ensure test isolation.
      *
      * @param id the calendar ID
      * @param name the calendar name
@@ -278,13 +293,6 @@ class CalendarControllerIntegrationTest {
      * @return the response entity
      */
     private ResponseEntity<CalendarResponse> createTestCalendarWithResponse(String id, String name, CalendarState state) {
-        // Delete calendar if it exists (for test isolation)
-        try {
-            restTemplate.delete(BASE_URL + "/" + id);
-        } catch (Exception e) {
-            // Ignore - calendar might not exist
-        }
-        
         CalendarMetadataRequest metadataRequest = CalendarMetadataRequest.builder()
             .status(state)
             .visibility(CalendarVisibility.PERSONAL)
@@ -305,7 +313,15 @@ class CalendarControllerIntegrationTest {
         String xmlRequest = createTestCalendarXml(calendar);
         HttpEntity<String> request = new HttpEntity<>(xmlRequest, createXmlHeaders());
 
-        return restTemplate.postForEntity(BASE_URL, request, CalendarResponse.class);
+        ResponseEntity<CalendarResponse> response = restTemplate.postForEntity(BASE_URL, request, CalendarResponse.class);
+        
+        // Track for cleanup
+        CalendarResponse responseBody = response.getBody();
+        if (responseBody != null && responseBody.getId() != null) {
+            createdCalendarIds.add(responseBody.getId());
+        }
+        
+        return response;
     }
 
     private String createTestCalendarXml(CalendarRequest request) {
@@ -519,7 +535,22 @@ class CalendarControllerIntegrationTest {
      */
     @SuppressWarnings("unused")
     private void createTestCalendar(String id, String name, CalendarState state) {
-        ResponseEntity<CalendarResponse> response = createTestCalendarWithResponse(id, name, state);
-        // Ignore response - calendar might already exist from previous test run
+        createTestCalendarWithResponse(id, name, state);
+    }
+    
+    /**
+     * Cleans up calendars created during tests.
+     * Runs after each test to ensure test isolation.
+     */
+    @AfterEach
+    void cleanup() {
+        for (String calendarId : createdCalendarIds) {
+            try {
+                restTemplate.delete(BASE_URL + "/" + calendarId);
+            } catch (Exception e) {
+                // Ignore cleanup errors - calendar might already be deleted
+            }
+        }
+        createdCalendarIds.clear();
     }
 }

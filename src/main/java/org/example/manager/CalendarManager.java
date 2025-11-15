@@ -53,4 +53,9 @@ public interface CalendarManager {
      * @return the number of calendars
      */
     long getCalendarCount();
+
+    /**
+     * Deletes all calendar entities.
+     */
+    void deleteAllCalendars();
 }

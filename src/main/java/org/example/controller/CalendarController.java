@@ -217,5 +217,28 @@ public class CalendarController {
         log.info("DELETE /api/calendars/{} - Calendar deleted, status=204", id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("")
+    @Operation(
+        summary = "Delete all calendars",
+        description = "Deletes all calendar entries from the database. This operation cannot be undone."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "204",
+            description = "All calendars deleted successfully"
+        )
+    })
+    /**
+     * Deletes all calendar entries from the database.
+     *
+     * @return ResponseEntity with status 204 (NO_CONTENT)
+     */
+    public ResponseEntity<Void> deleteAllCalendars() {
+        log.info("DELETE /api/calendars - Deleting all calendars");
+        calendarService.deleteAll();
+        log.info("DELETE /api/calendars - All calendars deleted, status=204");
+        return ResponseEntity.noContent().build();
+    }
 }
 

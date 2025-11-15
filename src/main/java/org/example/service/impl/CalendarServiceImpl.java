@@ -128,6 +128,16 @@ public class CalendarServiceImpl implements CalendarService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteAll() {
+        log.info("Deleting all calendars");
+        calendarManager.deleteAllCalendars();
+        log.info("All calendars deleted successfully");
+    }
+
+    /**
      * Generates a unique UUID for calendar entries.
      *
      * @return a UUID string

@@ -54,4 +54,9 @@ public interface Repository<T, ID> {
      * @return the number of entities
      */
     long count();
+
+    /**
+     * Deletes all entities.
+     */
+    void deleteAll();
 }

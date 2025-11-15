@@ -64,4 +64,12 @@ public class CalendarManagerImpl implements CalendarManager {
     public long getCalendarCount() {
         return calendarRepository.count();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteAllCalendars() {
+        calendarRepository.deleteAll();
+    }
 }

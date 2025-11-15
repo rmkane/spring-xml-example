@@ -6,6 +6,17 @@ A Spring Boot application demonstrating a layered architecture with XML request 
 <!-- omit in toc -->
 ## Table of Contents
 
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
+  - [Local Development](#local-development)
+    - [Using Make (Recommended)](#using-make-recommended)
+    - [Manual Commands](#manual-commands)
+  - [Running Tests](#running-tests)
+    - [Unit Tests Only](#unit-tests-only)
+    - [Integration Tests Only](#integration-tests-only)
+    - [All Tests](#all-tests)
+    - [Test Database](#test-database)
 - [Architecture Overview](#architecture-overview)
 - [Data Flow](#data-flow)
   - [Create Calendar Flow](#create-calendar-flow)
@@ -32,13 +43,123 @@ A Spring Boot application demonstrating a layered architecture with XML request 
   - [Starting PostgreSQL with Docker Compose](#starting-postgresql-with-docker-compose)
   - [Stopping the Database](#stopping-the-database)
   - [Database Schema](#database-schema)
-- [Running the Application](#running-the-application)
-  - [Prerequisites](#prerequisites)
-  - [Build and Run](#build-and-run)
-    - [VS Code Settings Caveat](#vs-code-settings-caveat)
-  - [Access Swagger UI](#access-swagger-ui)
+- [Additional Information](#additional-information)
+  - [VS Code Settings Caveat](#vs-code-settings-caveat)
 - [Architecture Benefits](#architecture-benefits)
 - [Future Enhancements](#future-enhancements)
+
+## Getting Started
+
+### Prerequisites
+
+- **Java 17** or higher
+- **Maven 3.9+**
+- **Docker** and **Docker Compose** (for database)
+- **Make** (optional, for convenience commands)
+
+### Quick Start
+
+1. **Start the database:**
+
+   ```bash
+   make db-start
+   # Or manually: docker-compose up -d
+   ```
+
+2. **Build and run the application:**
+
+   ```bash
+   make run
+   # Or manually: mvn clean spring-boot:run
+   ```
+
+3. **Access Swagger UI:**
+   - Open: `http://localhost:8080/swagger-ui.html`
+
+### Local Development
+
+#### Using Make (Recommended)
+
+The project includes a `Makefile` with convenient commands:
+
+```bash
+# Database
+make db-start          # Start PostgreSQL database
+make db-stop           # Stop database
+make db-status         # Check database status
+make db-psql           # Connect to dev database
+make db-psql-test      # Connect to test database
+make db-reset          # Reset database (deletes all data)
+
+# Application
+make run               # Run Spring Boot app
+make run-debug         # Run with debug port (8787)
+make stop              # Stop running application
+
+# Building
+make install           # Build and install (unit tests only)
+make verify            # Build and run all tests
+make clean             # Clean build artifacts
+```
+
+#### Manual Commands
+
+```bash
+# Start database
+docker-compose up -d
+
+# Build project
+mvn clean install
+
+# Run application
+mvn spring-boot:run
+
+# Stop database
+docker-compose down
+```
+
+### Running Tests
+
+#### Unit Tests Only
+
+```bash
+make test
+# Or: mvn test
+```
+
+Runs unit tests only (excludes integration tests by default).
+
+#### Integration Tests Only
+
+```bash
+make test-integration
+# Or: mvn test -Pintegration-tests
+```
+
+**Note:** Integration tests require:
+
+- Database to be running (`make db-start`)
+- Test database to exist (created automatically by `db-start`)
+
+#### All Tests
+
+```bash
+make test-all
+# Or: mvn test -Pintegration-tests
+```
+
+#### Test Database
+
+Integration tests use a separate database (`calendardb_test`) to avoid polluting development data:
+
+- **Dev database**: `calendardb` (port 5432)
+- **Test database**: `calendardb_test` (same server, different database)
+
+The test database is automatically created when you run `make db-start`. If needed, you can create it manually:
+
+```bash
+make db-setup-test
+```
 
 ## Architecture Overview
 
@@ -321,27 +442,27 @@ The application uses PostgreSQL with Flyway for database migrations. A Docker Co
 
 ### Starting PostgreSQL with Docker Compose
 
-1. Start the PostgreSQL database:
+**Using Make (Recommended):**
 
-   ```bash
-   docker-compose up -d
-   ```
+```bash
+make db-start
+```
 
-2. Verify the database is running:
+**Manual:**
 
-   ```bash
-   docker-compose ps
-   ```
+```bash
+docker-compose up -d
+```
 
-3. The database will be available at:
+The database will be available at:
 
-   - **Host**: `localhost`
-   - **Port**: `5432`
-   - **Database**: `calendardb`
-   - **Username**: `calendaruser`
-   - **Password**: `calendarpass`
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Database**: `calendardb` (dev) / `calendardb_test` (tests)
+- **Username**: `calendaruser`
+- **Password**: `calendarpass`
 
-4. Flyway will automatically run migrations when the application starts, creating the `calendars` and `events` tables.
+**Note:** The `db-start` command automatically creates the test database (`calendardb_test`) if it doesn't exist. Flyway will automatically run migrations when the application starts, creating the `calendars` and `events` tables in both databases.
 
 ### Stopping the Database
 
@@ -360,26 +481,9 @@ docker-compose down -v
 - **calendars**: Stores calendar information with metadata (status, visibility, timestamps, etc.)
 - **events**: Stores events linked to calendars via foreign key relationship
 
-## Running the Application
+## Additional Information
 
-### Prerequisites
-
-- Java 17 or higher
-- Maven 3.9+
-
-### Build and Run
-
-```bash
-# Build the project
-mvn clean install
-
-# Run the application
-mvn spring-boot:run
-```
-
-The application will start on `http://localhost:8080`
-
-#### VS Code Settings Caveat
+### VS Code Settings Caveat
 
 If you have the following setting in your VS Code settings (`.vscode/settings.json`):
 
@@ -389,7 +493,7 @@ If you have the following setting in your VS Code settings (`.vscode/settings.js
 }
 ```
 
-If you run the build and run commands separately (as shown above), you may encounter this error:
+If you run the build and run commands separately, you may encounter this error:
 
 ```none
 ***************************
@@ -412,10 +516,6 @@ mvn clean spring-boot:run
 ```
 
 This ensures annotation processors (MapStruct, Lombok) are properly executed and their generated code is found.
-
-### Access Swagger UI
-
-Once running, visit: `http://localhost:8080/swagger-ui.html`
 
 ## Architecture Benefits
 

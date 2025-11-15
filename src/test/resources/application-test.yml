@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/calendardb_test
+    username: calendaruser
+    password: calendarpass
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+logging:
+  level:
+    org.example: INFO
+    org.springframework: WARN
+    org.springdoc: ERROR
+    org.flywaydb: INFO
+
