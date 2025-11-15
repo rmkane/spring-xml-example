@@ -10,7 +10,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.example.validation.ValidationPatterns;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +27,9 @@ import lombok.NoArgsConstructor;
 public class CalendarRequest {
     @JacksonXmlProperty(isAttribute = true, localName = "id")
     @Schema(description = "Calendar ID", example = "20dbf44a-b88b-4742-a0b0-1d6c7dece68d", accessMode = AccessMode.READ_WRITE)
+    @Pattern(regexp = ValidationPatterns.UUID_PATTERN, 
+             message = "Calendar ID " + ValidationPatterns.UUID_MESSAGE, 
+             flags = Pattern.Flag.CASE_INSENSITIVE)
     private String id;
 
     @JacksonXmlProperty(localName = "name")

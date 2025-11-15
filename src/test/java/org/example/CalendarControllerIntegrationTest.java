@@ -100,7 +100,7 @@ class CalendarControllerIntegrationTest {
     @DisplayName("Should return 400 when creating duplicate calendar")
     void shouldReturn400WhenCreatingDuplicateCalendar() {
         // Given
-        String testId = "test-duplicate";
+        String testId = "550e8400-e29b-41d4-a716-446655440000";
         createTestCalendar(testId, "First", CalendarState.ACTIVE);
 
         // When - try to create duplicate using the helper method
@@ -134,9 +134,14 @@ class CalendarControllerIntegrationTest {
     void shouldParseEnumStateFromXml() {
         // Given - test all enum values
         CalendarState[] states = {CalendarState.UNKNOWN, CalendarState.ACTIVE, CalendarState.INACTIVE};
+        String[] testIds = {
+            "550e8400-e29b-41d4-a716-446655440001",
+            "550e8400-e29b-41d4-a716-446655440002",
+            "550e8400-e29b-41d4-a716-446655440003"
+        };
 
         for (int i = 0; i < states.length; i++) {
-            String testId = "test-state-" + i;
+            String testId = testIds[i];
             
             // When - create calendar with each state
             ResponseEntity<CalendarResponse> createResponse = createTestCalendarWithResponse(
@@ -173,8 +178,8 @@ class CalendarControllerIntegrationTest {
     @DisplayName("Should retrieve all calendars")
     void shouldFindAllCalendars() {
         // Given - create calendars first
-        createTestCalendar("test-all-1", "Test 1", CalendarState.ACTIVE);
-        createTestCalendar("test-all-2", "Test 2", CalendarState.INACTIVE);
+        createTestCalendar("550e8400-e29b-41d4-a716-446655440010", "Test 1", CalendarState.ACTIVE);
+        createTestCalendar("550e8400-e29b-41d4-a716-446655440011", "Test 2", CalendarState.INACTIVE);
 
         // When
         ResponseEntity<PagedResponse<CalendarResponse>> response = restTemplate.exchange(
@@ -200,7 +205,7 @@ class CalendarControllerIntegrationTest {
     @DisplayName("Should retrieve calendar by ID")
     void shouldFindCalendarById() {
         // Given
-        String testId = "test-find-by-id";
+        String testId = "550e8400-e29b-41d4-a716-446655440020";
         createTestCalendar(testId, "Find By ID Test", CalendarState.ACTIVE);
 
         // When
@@ -245,7 +250,7 @@ class CalendarControllerIntegrationTest {
     @DisplayName("Should delete calendar by ID")
     void shouldDeleteCalendarById() {
         // Given
-        String testId = "test-delete";
+        String testId = "550e8400-e29b-41d4-a716-446655440030";
         createTestCalendar(testId, "Delete Test", CalendarState.ACTIVE);
 
         // When

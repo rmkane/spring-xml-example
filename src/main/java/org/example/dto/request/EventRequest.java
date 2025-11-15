@@ -11,7 +11,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.example.validation.ValidationPatterns;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +28,9 @@ import lombok.NoArgsConstructor;
 public class EventRequest {
     @JacksonXmlProperty(isAttribute = true, localName = "id")
     @Schema(description = "Event ID", example = "a1b2c3d4-e5f6-7890-abcd-111111111111", accessMode = Schema.AccessMode.READ_WRITE)
+    @Pattern(regexp = ValidationPatterns.UUID_PATTERN, 
+             message = "Event ID " + ValidationPatterns.UUID_MESSAGE, 
+             flags = Pattern.Flag.CASE_INSENSITIVE)
     private String id;
 
     @JacksonXmlProperty(localName = "name")

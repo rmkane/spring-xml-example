@@ -601,7 +601,10 @@ This ensures annotation processors (MapStruct, Lombok) are properly executed and
 
 - [x] Replace in-memory storage with a real database (JPA/Hibernate)
   - Using JDBC with PostgreSQL
-- [ ] Add validation annotations to DTOs
+- [x] Add validation annotations to DTOs
+  - Added @NotBlank, @NotNull, @Size, @Pattern validations
+  - UUID format validation for calendar and event IDs
+  - Validation error handling via GlobalExceptionHandler
 - [x] Implement pagination for list endpoints
   - Pagination support added to GET /api/calendars
 - [ ] Add authentication/authorization
