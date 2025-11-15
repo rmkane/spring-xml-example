@@ -13,6 +13,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -107,7 +108,7 @@ public class CalendarController {
      * @param calendar the calendar request in XML format
      * @return ResponseEntity with status 201 (CREATED), Location header, and the created calendar response
      */
-    public ResponseEntity<CalendarResponse> createCalendar(@RequestBody CalendarRequest calendar) {
+    public ResponseEntity<CalendarResponse> createCalendar(@Valid @RequestBody CalendarRequest calendar) {
         log.info("POST /api/calendars - Creating calendar: id={}, name={}", 
             calendar.getId(), calendar.getName());
         CalendarResponse response = calendarService.create(calendar);

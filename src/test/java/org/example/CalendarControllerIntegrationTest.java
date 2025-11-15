@@ -52,7 +52,14 @@ class CalendarControllerIntegrationTest {
     @Test
     @DisplayName("Should create calendar from XML and return JSON")
     void shouldCreateCalendarFromXml() throws IOException {
-        // Given
+        // Given - delete calendar if it exists (for test isolation)
+        String calendarId = "20dbf44a-b88b-4742-a0b0-1d6c7dece68d";
+        try {
+            restTemplate.delete(BASE_URL + "/" + calendarId);
+        } catch (Exception e) {
+            // Ignore - calendar might not exist
+        }
+        
         String xmlRequest = loadXmlResource("/calendars/20dbf44a-b88b-4742-a0b0-1d6c7dece68d.xml");
         HttpEntity<String> request = new HttpEntity<>(xmlRequest, createXmlHeaders());
 
@@ -263,6 +270,7 @@ class CalendarControllerIntegrationTest {
 
     /**
      * Creates test calendar and returns the response.
+     * Deletes existing calendar first if it exists to ensure test isolation.
      *
      * @param id the calendar ID
      * @param name the calendar name
@@ -270,6 +278,13 @@ class CalendarControllerIntegrationTest {
      * @return the response entity
      */
     private ResponseEntity<CalendarResponse> createTestCalendarWithResponse(String id, String name, CalendarState state) {
+        // Delete calendar if it exists (for test isolation)
+        try {
+            restTemplate.delete(BASE_URL + "/" + id);
+        } catch (Exception e) {
+            // Ignore - calendar might not exist
+        }
+        
         CalendarMetadataRequest metadataRequest = CalendarMetadataRequest.builder()
             .status(state)
             .visibility(CalendarVisibility.PERSONAL)
@@ -496,12 +511,15 @@ class CalendarControllerIntegrationTest {
 
     /**
      * Creates test calendar (convenience method that discards response).
+     * If calendar already exists, it's fine - we'll use the existing one.
      *
      * @param id the calendar ID
      * @param name the calendar name
      * @param state the calendar state
      */
+    @SuppressWarnings("unused")
     private void createTestCalendar(String id, String name, CalendarState state) {
-        createTestCalendarWithResponse(id, name, state);
+        ResponseEntity<CalendarResponse> response = createTestCalendarWithResponse(id, name, state);
+        // Ignore response - calendar might already exist from previous test run
     }
 }

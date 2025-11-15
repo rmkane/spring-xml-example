@@ -33,7 +33,7 @@ public class CalendarServiceImpl implements CalendarService {
     @Override
     public Optional<CalendarResponse> findById(String id) {
         log.info("Finding calendar by ID: {}", id);
-        Optional<CalendarResponse> result = calendarManager.findById(id)
+        Optional<CalendarResponse> result = calendarManager.findCalendarById(id)
             .map(calendarResponseMapper::toResponse);
         if (result.isPresent()) {
             log.debug("Calendar found: id={}, name={}, eventCount={}", 
@@ -52,9 +52,9 @@ public class CalendarServiceImpl implements CalendarService {
     @Override
     public void deleteById(String id) {
         log.info("Deleting calendar: id={}", id);
-        boolean exists = calendarManager.findById(id).isPresent();
+        boolean exists = calendarManager.calendarExists(id);
         if (exists) {
-            calendarManager.deleteById(id);
+            calendarManager.deleteCalendarById(id);
             log.info("Calendar deleted successfully: id={}", id);
         } else {
             log.warn("Attempted to delete non-existent calendar: id={}", id);
@@ -67,7 +67,7 @@ public class CalendarServiceImpl implements CalendarService {
     @Override
     public List<CalendarResponse> findAll() {
         log.info("Finding all calendars");
-        List<CalendarResponse> results = calendarManager.findAll()
+        List<CalendarResponse> results = calendarManager.findAllCalendars()
             .stream()
             .map(calendarResponseMapper::toResponse)
             .toList();
@@ -85,7 +85,7 @@ public class CalendarServiceImpl implements CalendarService {
         log.info("Creating calendar: id={}, name={}", calendarId, calendar.getName());
         
         // Check if calendar already exists
-        if (calendarId != null && !calendarId.isEmpty() && calendarManager.findById(calendarId).isPresent()) {
+        if (calendarId != null && !calendarId.isEmpty() && calendarManager.findCalendarById(calendarId).isPresent()) {
             log.warn("Calendar already exists: id={}", calendarId);
             throw new CalendarAlreadyExistsException(calendarId);
         }
@@ -117,7 +117,7 @@ public class CalendarServiceImpl implements CalendarService {
             calendar.getMetadata().getVisibility());
         
         Calendar entity = calendarRequestMapper.toEntity(calendar);
-        CalendarResponse response = calendarResponseMapper.toResponse(calendarManager.save(entity));
+        CalendarResponse response = calendarResponseMapper.toResponse(calendarManager.saveCalendar(entity));
         
         log.info("Calendar created successfully: id={}, name={}, eventCount={}", 
             response.getId(), 

@@ -39,4 +39,19 @@ public interface Repository<T, ID> {
      * @return list of all entities
      */
     List<T> findAll();
+
+    /**
+     * Checks if an entity exists by its ID.
+     *
+     * @param id the entity ID
+     * @return true if the entity exists, false otherwise
+     */
+    boolean existsById(ID id);
+
+    /**
+     * Returns the number of entities.
+     *
+     * @return the number of entities
+     */
+    long count();
 }

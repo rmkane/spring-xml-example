@@ -8,6 +8,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,19 +29,24 @@ public class CalendarRequest {
 
     @JacksonXmlProperty(localName = "name")
     @Schema(description = "Calendar name", example = "Work Calendar")
+    @NotBlank(message = "Calendar name is required")
+    @Size(max = 255, message = "Calendar name must not exceed 255 characters")
     private String name;
 
     @JacksonXmlProperty(localName = "description")
     @Schema(description = "Calendar description", example = "Work schedule and meetings")
+    @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
     @JacksonXmlProperty(localName = "metadata")
     @Schema(description = "Calendar metadata section")
+    @Valid
     private CalendarMetadataRequest metadata;
 
     @JacksonXmlProperty(localName = "event")
     @JacksonXmlElementWrapper(useWrapping = false)
     @Schema(description = "List of calendar events")
+    @Valid
     private List<EventRequest> events;
 }
 

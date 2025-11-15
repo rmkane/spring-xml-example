@@ -21,15 +21,15 @@ public class CalendarManagerImpl implements CalendarManager {
      * {@inheritDoc}
      */
     @Override
-    public Calendar save(Calendar entity) {
-        return calendarRepository.save(entity);
+    public Calendar saveCalendar(Calendar calendar) {
+        return calendarRepository.save(calendar);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void deleteById(String id) {
+    public void deleteCalendarById(String id) {
         calendarRepository.deleteById(id);
     }
 
@@ -37,7 +37,7 @@ public class CalendarManagerImpl implements CalendarManager {
      * {@inheritDoc}
      */
     @Override
-    public Optional<Calendar> findById(String id) {
+    public Optional<Calendar> findCalendarById(String id) {
         return calendarRepository.findById(id);
     }
 
@@ -45,7 +45,23 @@ public class CalendarManagerImpl implements CalendarManager {
      * {@inheritDoc}
      */
     @Override
-    public List<Calendar> findAll() {
+    public List<Calendar> findAllCalendars() {
         return calendarRepository.findAll();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean calendarExists(String id) {
+        return calendarRepository.existsById(id);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getCalendarCount() {
+        return calendarRepository.count();
     }
 }

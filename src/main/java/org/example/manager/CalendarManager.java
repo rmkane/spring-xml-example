@@ -12,30 +12,45 @@ public interface CalendarManager {
     /**
      * Saves a calendar entity.
      *
-     * @param entity the entity to save
-     * @return the saved entity
+     * @param calendar the calendar entity to save
+     * @return the saved calendar entity
      */
-    Calendar save(Calendar entity);
+    Calendar saveCalendar(Calendar calendar);
 
     /**
      * Deletes a calendar entity by its ID.
      *
-     * @param id the entity ID
+     * @param id the calendar ID
      */
-    void deleteById(String id);
+    void deleteCalendarById(String id);
 
     /**
      * Finds a calendar entity by its ID.
      *
-     * @param id the entity ID
-     * @return Optional containing the entity if found, empty otherwise
+     * @param id the calendar ID
+     * @return Optional containing the calendar entity if found, empty otherwise
      */
-    Optional<Calendar> findById(String id);
+    Optional<Calendar> findCalendarById(String id);
 
     /**
      * Retrieves all calendar entities.
      *
-     * @return list of all entities
+     * @return list of all calendar entities
      */
-    List<Calendar> findAll();
+    List<Calendar> findAllCalendars();
+
+    /**
+     * Checks if a calendar entity exists by its ID.
+     *
+     * @param id the calendar ID
+     * @return true if the calendar exists, false otherwise
+     */
+    boolean calendarExists(String id);
+
+    /**
+     * Returns the number of calendar entities.
+     *
+     * @return the number of calendars
+     */
+    long getCalendarCount();
 }

@@ -111,9 +111,9 @@ class CalendarServiceImplTest {
     @DisplayName("Should create calendar successfully when ID is provided")
     void shouldCreateCalendarWithProvidedId() {
         // Given
-        when(calendarManager.findById("test-id-123")).thenReturn(Optional.empty());
+        when(calendarManager.findCalendarById("test-id-123")).thenReturn(Optional.empty());
         when(calendarRequestMapper.toEntity(testRequest)).thenReturn(testEntity);
-        when(calendarManager.save(testEntity)).thenReturn(testEntity);
+        when(calendarManager.saveCalendar(testEntity)).thenReturn(testEntity);
         when(calendarResponseMapper.toResponse(testEntity)).thenReturn(testResponse);
 
         // When
@@ -123,9 +123,9 @@ class CalendarServiceImplTest {
         assertNotNull(result);
         assertEquals("test-id-123", result.getId());
         assertEquals("Test Calendar", result.getName());
-        verify(calendarManager).findById("test-id-123");
+        verify(calendarManager).findCalendarById("test-id-123");
         verify(calendarRequestMapper).toEntity(testRequest);
-        verify(calendarManager).save(testEntity);
+        verify(calendarManager).saveCalendar(testEntity);
         verify(calendarResponseMapper).toResponse(testEntity);
     }
 
@@ -135,7 +135,7 @@ class CalendarServiceImplTest {
         // Given
         testRequest.setId(null);
         when(calendarRequestMapper.toEntity(any(CalendarRequest.class))).thenReturn(testEntity);
-        when(calendarManager.save(any(Calendar.class))).thenReturn(testEntity);
+        when(calendarManager.saveCalendar(any(Calendar.class))).thenReturn(testEntity);
         when(calendarResponseMapper.toResponse(any(Calendar.class))).thenReturn(testResponse);
 
         // When
@@ -145,8 +145,8 @@ class CalendarServiceImplTest {
         assertNotNull(result);
         assertNotNull(testRequest.getId()); // ID should be generated
         assertFalse(testRequest.getId().isEmpty());
-        verify(calendarManager, never()).findById(null); // Should not check for null ID
-        verify(calendarManager).save(any(Calendar.class));
+        verify(calendarManager, never()).findCalendarById(null); // Should not check for null ID
+        verify(calendarManager).saveCalendar(any(Calendar.class));
     }
 
     @Test
@@ -155,7 +155,7 @@ class CalendarServiceImplTest {
         // Given
         testRequest.setId("");
         when(calendarRequestMapper.toEntity(any(CalendarRequest.class))).thenReturn(testEntity);
-        when(calendarManager.save(any(Calendar.class))).thenReturn(testEntity);
+        when(calendarManager.saveCalendar(any(Calendar.class))).thenReturn(testEntity);
         when(calendarResponseMapper.toResponse(any(Calendar.class))).thenReturn(testResponse);
 
         // When
@@ -165,15 +165,15 @@ class CalendarServiceImplTest {
         assertNotNull(result);
         assertNotNull(testRequest.getId());
         assertFalse(testRequest.getId().isEmpty());
-        verify(calendarManager, never()).findById(""); // Should not check for empty ID
-        verify(calendarManager).save(any(Calendar.class));
+        verify(calendarManager, never()).findCalendarById(""); // Should not check for empty ID
+        verify(calendarManager).saveCalendar(any(Calendar.class));
     }
 
     @Test
     @DisplayName("Should throw exception when calendar with same ID already exists")
     void shouldThrowExceptionWhenCalendarAlreadyExists() {
         // Given
-        when(calendarManager.findById("test-id-123")).thenReturn(Optional.of(testEntity));
+        when(calendarManager.findCalendarById("test-id-123")).thenReturn(Optional.of(testEntity));
 
         // When & Then
         CalendarAlreadyExistsException exception = assertThrows(
@@ -182,15 +182,15 @@ class CalendarServiceImplTest {
         );
 
         assertEquals("Calendar with id test-id-123 already exists", exception.getMessage());
-        verify(calendarManager).findById("test-id-123");
-        verify(calendarManager, never()).save(any());
+        verify(calendarManager).findCalendarById("test-id-123");
+        verify(calendarManager, never()).saveCalendar(any());
     }
 
     @Test
     @DisplayName("Should find calendar by ID")
     void shouldFindCalendarById() {
         // Given
-        when(calendarManager.findById("test-id-123")).thenReturn(Optional.of(testEntity));
+        when(calendarManager.findCalendarById("test-id-123")).thenReturn(Optional.of(testEntity));
         when(calendarResponseMapper.toResponse(testEntity)).thenReturn(testResponse);
 
         // When
@@ -199,7 +199,7 @@ class CalendarServiceImplTest {
         // Then
         assertTrue(result.isPresent());
         assertEquals("test-id-123", result.get().getId());
-        verify(calendarManager).findById("test-id-123");
+        verify(calendarManager).findCalendarById("test-id-123");
         verify(calendarResponseMapper).toResponse(testEntity);
     }
 
@@ -207,14 +207,14 @@ class CalendarServiceImplTest {
     @DisplayName("Should return empty when calendar not found")
     void shouldReturnEmptyWhenCalendarNotFound() {
         // Given
-        when(calendarManager.findById("non-existent-id")).thenReturn(Optional.empty());
+        when(calendarManager.findCalendarById("non-existent-id")).thenReturn(Optional.empty());
 
         // When
         Optional<CalendarResponse> result = calendarService.findById("non-existent-id");
 
         // Then
         assertTrue(result.isEmpty());
-        verify(calendarManager).findById("non-existent-id");
+        verify(calendarManager).findCalendarById("non-existent-id");
         verify(calendarResponseMapper, never()).toResponse(any());
     }
 
@@ -222,14 +222,14 @@ class CalendarServiceImplTest {
     @DisplayName("Should delete calendar by ID")
     void shouldDeleteCalendarById() {
         // Given
-        when(calendarManager.findById("test-id-123")).thenReturn(Optional.of(testEntity));
+        when(calendarManager.calendarExists("test-id-123")).thenReturn(true);
 
         // When
         calendarService.deleteById("test-id-123");
 
         // Then
-        verify(calendarManager).findById("test-id-123");
-        verify(calendarManager).deleteById("test-id-123");
+        verify(calendarManager).calendarExists("test-id-123");
+        verify(calendarManager).deleteCalendarById("test-id-123");
     }
 }
 

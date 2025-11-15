@@ -74,6 +74,8 @@ public class CalendarRepositoryImpl implements CalendarRepository {
 
     private static final String DELETE_CALENDAR = "DELETE FROM calendars WHERE id = ?";
     private static final String DELETE_EVENTS = "DELETE FROM events WHERE calendar_id = ?";
+    private static final String EXISTS_CALENDAR = "SELECT EXISTS(SELECT 1 FROM calendars WHERE id = ?)";
+    private static final String COUNT_CALENDARS = "SELECT COUNT(*) FROM calendars";
 
     /**
      * {@inheritDoc}
@@ -188,6 +190,28 @@ public class CalendarRepositoryImpl implements CalendarRepository {
         }
         log.debug("Loaded all calendars with events: totalCalendars={}", calendars.size());
         return calendars;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean existsById(String id) {
+        log.debug("Checking if calendar exists: id={}", id);
+        Boolean exists = jdbcTemplate.queryForObject(EXISTS_CALENDAR, Boolean.class, id);
+        log.debug("Calendar exists check: id={}, exists={}", id, exists);
+        return Boolean.TRUE.equals(exists);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long count() {
+        log.debug("Counting calendars");
+        Long count = jdbcTemplate.queryForObject(COUNT_CALENDARS, Long.class);
+        log.debug("Calendar count: {}", count);
+        return count != null ? count : 0L;
     }
 
     /**
